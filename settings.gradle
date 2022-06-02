@@ -1,0 +1,5 @@
+include ':microservices:book-service'
+include ':microservices:author-service'
+include ':microservices:rating-service'
+include ':microservices:book-composite-service'
+
