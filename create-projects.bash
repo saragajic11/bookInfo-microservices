@@ -32,6 +32,18 @@ spring init \
 --build=gradle \
 --java-version=1.8 \
 --packaging=jar \
+--name=genre-service \
+--package-name=microservices.core.genre \
+--groupId=microservices.core.genre \
+--dependencies=actuator,webflux \
+--version=1.0.0-SNAPSHOT \
+genre-service
+
+spring init \
+--boot-version=2.3.0.RELEASE \
+--build=gradle \
+--java-version=1.8 \
+--packaging=jar \
 --name=rating-service \
 --package-name=microservices.core.rating \
 --groupId=microservices.core.rating \
