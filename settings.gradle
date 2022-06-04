@@ -1,6 +1,6 @@
 include ':microservices:book-service'
-include ':microservices:author-service'
 include ':microservices:rating-service'
-include 'microservices:genre-service'
+include ':microservices:comment-service'
+include 'microservices:book-theme-night-service'
 include ':microservices:book-composite-service'
 
