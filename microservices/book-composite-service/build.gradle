@@ -4,7 +4,7 @@ plugins {
 	id 'java'
 }
 
-group = 'microservices.composite.book'
+group = 'se.magnus.microservices.composite.book'
 version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 

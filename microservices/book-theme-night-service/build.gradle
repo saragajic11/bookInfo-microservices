@@ -4,7 +4,7 @@ plugins {
 	id 'java'
 }
 
-group = 'microservices.core.book-theme-night'
+group = 'se.magnus.microservices.core.book-theme-night'
 version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 

@@ -9,8 +9,8 @@ spring init \
 --java-version=1.8 \
 --packaging=jar \
 --name=book-service \
---package-name=microservices.core.book \
---groupId=microservices.core.book \
+--package-name=se.magnus.microservices.core.book \
+--groupId=se.magnus.microservices.core.book \
 --dependencies=actuator,webflux \
 --version=1.0.0-SNAPSHOT \
 book-service
@@ -21,8 +21,8 @@ spring init \
 --java-version=1.8 \
 --packaging=jar \
 --name=rating-service \
---package-name=microservices.core.rating \
---groupId=microservices.core.rating \
+--package-name=se.magnus.microservices.core.rating \
+--groupId=se.magnus.microservices.core.rating \
 --dependencies=actuator,webflux \
 --version=1.0.0-SNAPSHOT \
 rating-service
@@ -33,8 +33,8 @@ spring init \
 --java-version=1.8 \
 --packaging=jar \
 --name=comment-service \
---package-name=microservices.core.comment \
---groupId=microservices.core.comment \
+--package-name=se.magnus.microservices.core.comment \
+--groupId=se.magnus.microservices.core.comment \
 --dependencies=actuator,webflux \
 --version=1.0.0-SNAPSHOT \
 comment-service
@@ -45,8 +45,8 @@ spring init \
 --java-version=1.8 \
 --packaging=jar \
 --name=book-theme-night-service \
---package-name=microservices.core.book-theme-night \
---groupId=microservices.core.book-theme-night \
+--package-name=se.magnus.microservices.core.book-theme-night \
+--groupId=se.magnus.microservices.core.book-theme-night \
 --dependencies=actuator,webflux \
 --version=1.0.0-SNAPSHOT \
 book-theme-night-service
@@ -57,8 +57,8 @@ spring init \
 --java-version=1.8 \
 --packaging=jar \
 --name=book-composite-service \
---package-name=microservices.composite.book \
---groupId=microservices.composite.book \
+--package-name=se.magnus.microservices.composite.book \
+--groupId=se.magnus.microservices.composite.book \
 --dependencies=actuator,webflux \
 --version=1.0.0-SNAPSHOT \
 book-composite-service
