@@ -3,7 +3,7 @@ package se.magnus.api.composite.book;
 import java.util.List;
 import java.util.Date;
 
-public class BookAggregate {
+public class BookAggregateModel {
     private final int bookId;
     private final String name;
     private final Date releaseDate;
@@ -13,7 +13,7 @@ public class BookAggregate {
     private final List<BookThemeNightSummary> bookThemeNights;
     private final ServiceAddresses serviceAddresses;
     
-    public BookAggregate(int bookId, String name, Date releaseDate, String language, List<RatingSummary> ratings, List<CommentSummary> comments, List<BookThemeNightSummary> bookThemeNights, ServiceAddresses serviceAddresses) {
+    public BookAggregateModel(int bookId, String name, Date releaseDate, String language, List<RatingSummary> ratings, List<CommentSummary> comments, List<BookThemeNightSummary> bookThemeNights, ServiceAddresses serviceAddresses) {
         this.bookId = bookId;
         this.name = name;
         this.releaseDate = releaseDate;

@@ -14,5 +14,5 @@ public interface BookService {
     @GetMapping(
         value    = "/book/{bookId}",
         produces = "application/json")
-     Book getBook(@PathVariable int bookId);
+     BookModel getBook(@PathVariable int bookId);
 }

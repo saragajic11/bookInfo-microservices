@@ -2,14 +2,14 @@ package se.magnus.api.core.book;
 
 import java.util.Date;
 
-public class Book {
+public class BookModel {
     private final int bookId;
     private final String name;
     private final Date releaseDate;
     public final String language;
     private final String serviceAddress;
 
-    public Book() {
+    public BookModel() {
         bookId = 0;
         name = null;
         releaseDate = null;
@@ -17,7 +17,7 @@ public class Book {
         serviceAddress = null;
     }
 
-    public Book(int bookId, String name, Date releaseDate, String language, String serviceAddress) {
+    public BookModel(int bookId, String name, Date releaseDate, String language, String serviceAddress) {
         this.bookId = bookId;
         this.name = name;
         this.releaseDate = releaseDate;

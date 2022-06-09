@@ -14,5 +14,5 @@ public interface BookCompositeService {
     @GetMapping(
         value    = "/book-composite/{bookId}",
         produces = "application/json")
-    BookAggregate getBook(@PathVariable int bookId);
+    BookAggregateModel getBook(@PathVariable int bookId);
 }

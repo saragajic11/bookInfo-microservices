@@ -18,8 +18,8 @@ public class BookServiceImpl implements BookService {
 	}
 	
 	@Override
-	public Book getBook(int bookId) {
-		return new Book();
+	public BookModel getBook(int bookId) {
+		return new BookModel();
 	}
 	
 }

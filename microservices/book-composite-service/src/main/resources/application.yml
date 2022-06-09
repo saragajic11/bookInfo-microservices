@@ -1,0 +1,16 @@
+server.port: 7000
+server.error.include-message: always
+
+app:
+  book-service:
+    host: localhost
+    port: 7001
+  book-theme-night-service:
+    host: localhost
+    port: 7002
+  comment-service:
+    host: localhost
+    port: 7003
+  rating-service:
+    host: localhost
+    port: 7004
