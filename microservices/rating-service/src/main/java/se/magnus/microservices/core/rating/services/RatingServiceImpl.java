@@ -29,7 +29,12 @@ public class RatingServiceImpl implements RatingService {
 		if(bookId == 13) {
 			throw new NotFoundException("No ratings with provided id: " + bookId);
 		}
-		return new ArrayList();
+		
+        List<Rating> list = new ArrayList<>();
+        list.add(new Rating(bookId, 1, "Author 1", 5, serviceUtil.getServiceAddress()));
+        list.add(new Rating(bookId, 2, "Author 1", 7, serviceUtil.getServiceAddress()));
+        list.add(new Rating(bookId, 3, "Author 3", 10, serviceUtil.getServiceAddress()));
+        return list;
 	}
 	
 }

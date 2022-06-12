@@ -1,5 +1,6 @@
 package se.magnus.microservices.core.comment.services;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,12 @@ public class CommentServiceImpl implements CommentService {
 		if(bookId == 13) {
 			throw new NotFoundException("No comments with provided id: " + bookId);
 		}
-		return new ArrayList();
+
+        List<Comment> list = new ArrayList<>();
+        list.add(new Comment(bookId, 1, "Author 1", "Content 1", serviceUtil.getServiceAddress()));
+        list.add(new Comment(bookId, 2, "Author 2", "Content 2", serviceUtil.getServiceAddress()));
+        list.add(new Comment(bookId, 3, "Author 3", "Content 3", serviceUtil.getServiceAddress()));
+        return list;
 	}
 	
 }
