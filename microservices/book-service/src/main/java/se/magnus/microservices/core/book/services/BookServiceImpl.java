@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.api.core.book.*;
 import se.magnus.util.http.ServiceUtil;
+import se.magnus.util.exceptions.*;
 
 @RestController
 public class BookServiceImpl implements BookService {
@@ -19,6 +20,12 @@ public class BookServiceImpl implements BookService {
 	
 	@Override
 	public BookModel getBook(int bookId) {
+		if(bookId < 1) {
+			throw new InvalidInputException("Invalid book id: " + bookId);
+		}
+		if(bookId == 13) {
+			throw new NotFoundException("No book with provided id: " + bookId);
+		}
 		return new BookModel();
 	}
 	

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import se.magnus.api.core.bookthemenight.*;
 import se.magnus.util.http.ServiceUtil;
 import java.util.List;
+import se.magnus.util.exceptions.*;
 
 @RestController
 public class BookThemeNightServiceImpl implements BookThemeNightService {
@@ -23,6 +24,12 @@ public class BookThemeNightServiceImpl implements BookThemeNightService {
 	
 	@Override
 	public List<BookThemeNight> getBookThemeNights(int bookId) {
+		if(bookId < 1) {
+			throw new InvalidInputException("Invalid book id: " + bookId);
+		}
+		if(bookId == 13) {
+			throw new NotFoundException("No book theme nights for provided bookId: " + bookId);
+		}
 		return new ArrayList();
 	}
 

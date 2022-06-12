@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.api.core.comment.*;
 import se.magnus.util.http.ServiceUtil;
+import se.magnus.util.exceptions.*;
 
 @RestController
 public class CommentServiceImpl implements CommentService {
@@ -22,6 +23,12 @@ public class CommentServiceImpl implements CommentService {
 	
 	@Override
 	public List<Comment> getComments(int bookId) {
+		if(bookId < 1) {
+			throw new InvalidInputException("Invalid book id: " + bookId);
+		}
+		if(bookId == 13) {
+			throw new NotFoundException("No comments with provided id: " + bookId);
+		}
 		return new ArrayList();
 	}
 	

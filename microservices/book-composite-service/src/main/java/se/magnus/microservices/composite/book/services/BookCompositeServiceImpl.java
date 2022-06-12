@@ -12,6 +12,7 @@ import se.magnus.api.core.book.*;
 import se.magnus.api.core.bookthemenight.*;
 import se.magnus.api.core.comment.*;
 import se.magnus.api.core.rating.*;
+import se.magnus.util.http.ServiceUtil;
 
 @RestController
 public class BookCompositeServiceImpl implements BookCompositeService {
