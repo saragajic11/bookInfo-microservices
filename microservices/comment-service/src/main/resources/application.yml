@@ -1,7 +1,8 @@
-server.port: 7003
-server.error.include-message: always
-
 logging:
   level:
     root: INFO
     se.magnus: DEBUG
+---
+spring.profiles: docker
+
+server.port: 8080

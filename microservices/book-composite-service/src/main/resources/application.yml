@@ -1,16 +1,24 @@
-server.port: 7000
-server.error.include-message: always
+logging:
+  level:
+    root: INFO
+    microservices: DEBUG
+    se.magnus: DEBUG
+
+---
+spring.profiles: docker
+
+server.port: 8080
 
 app:
   book-service:
-    host: localhost
-    port: 7001
+    host: book
+    port: 8080
   book-theme-night-service:
-    host: localhost
-    port: 7002
+    host: book-theme-night
+    port: 8080
   comment-service:
-    host: localhost
-    port: 7003
+    host: comment
+    port: 8080
   rating-service:
-    host: localhost
-    port: 7004
+    host: rating
+    port: 8080

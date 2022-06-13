@@ -1,0 +1,39 @@
+version: '2.1'
+
+services:
+  book:
+    platform: linux/amd64
+    build: microservices/book-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  comment:
+    platform: linux/amd64
+    build: microservices/comment-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  rating:
+    platform: linux/amd64
+    build: microservices/rating-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  book-theme-night:
+    platform: linux/amd64
+    build: microservices/book-theme-night-service
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  book-composite:
+    platform: linux/amd64
+    build: microservices/book-composite-service
+    mem_limit: 350m
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker

@@ -53,6 +53,7 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 		try {
 			String url = bookServiceUrl + bookId;
 			BookModel book = restTemplate.getForObject(url, BookModel.class);
+			LOG.warn("Aha ovde sam, bookId je: ");
 			return book;
 		} catch (HttpClientErrorException ex) {
 

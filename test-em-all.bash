@@ -3,7 +3,7 @@
 #   HOST=localhost PORT=7000 ./test-em-all.bash
 #
 : ${HOST=localhost}
-: ${PORT=7000}
+: ${PORT=8080}
 
 function assertCurl() {
 
@@ -81,7 +81,7 @@ assertEqual 0 $(echo $RESPONSE | jq ".bookThemeNights | length")
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a bookId that is out of range (-1)
 assertCurl 422 "curl http://$HOST:$PORT/book-composite/-1 -s"
-assertEqual "\"Invalid bookId: -1\"" "$(echo $RESPONSE | jq .message)"
+assertEqual "\"Invalid book id: -1\"" "$(echo $RESPONSE | jq .message)"
 
 # Verify that a 400 (Bad Request) error error is returned for a bookId that is not a number, i.e. invalid format
 assertCurl 400 "curl http://$HOST:$PORT/book-composite/invalidBookId -s"
