@@ -1,6 +1,6 @@
 package se.magnus.microservices.core.book.services;
 
-import java.sql.Date;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class BookServiceImpl implements BookService {
 		if(bookId == 13) {
 			throw new NotFoundException("No book with provided id: " + bookId);
 		}
-		return new BookModel(bookId, "Book 1", Date.valueOf("2021-08-13"), "Language 1", serviceUtil.getServiceAddress());
+		return new BookModel(bookId, "Book 1", new Date(), "Language 1", serviceUtil.getServiceAddress());
 	}
 	
 }

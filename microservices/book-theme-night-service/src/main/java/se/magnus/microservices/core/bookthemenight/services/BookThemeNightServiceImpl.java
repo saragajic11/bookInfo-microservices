@@ -1,6 +1,6 @@
 package se.magnus.microservices.core.bookthemenight.services;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,9 +32,9 @@ public class BookThemeNightServiceImpl implements BookThemeNightService {
 			throw new NotFoundException("No book theme nights for provided bookId: " + bookId);
 		}
         List<BookThemeNight> list = new ArrayList<>();
-        list.add(new BookThemeNight(bookId, 1, "Book Theme Night 1", Date.valueOf("2021-08-13"), "Location 1", serviceUtil.getServiceAddress()));
-        list.add(new BookThemeNight(bookId, 2, "Book Theme Night 2", Date.valueOf("2021-08-13"), "Location 2", serviceUtil.getServiceAddress()));
-        list.add(new BookThemeNight(bookId, 3, "Book Theme Night 3", Date.valueOf("2021-08-13"), "Location 3", serviceUtil.getServiceAddress()));
+        list.add(new BookThemeNight(bookId, 1, "Book Theme Night 1", new Date(), "Location 1", serviceUtil.getServiceAddress()));
+        list.add(new BookThemeNight(bookId, 2, "Book Theme Night 2", new Date(), "Location 2", serviceUtil.getServiceAddress()));
+        list.add(new BookThemeNight(bookId, 3, "Book Theme Night 3", new Date(), "Location 3", serviceUtil.getServiceAddress()));
         return list;
 	}
 
