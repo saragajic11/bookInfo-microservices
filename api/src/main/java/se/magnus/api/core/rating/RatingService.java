@@ -25,7 +25,7 @@ public interface RatingService {
 	        value    = "/rating",
 	        consumes = "application/json",
 	        produces = "application/json")
-	Rating createInsuranceOffer(@RequestBody Rating body);
+	Rating createRating(@RequestBody Rating body);
 	
 	@DeleteMapping(value = "/rating")
     void deleteRating(@RequestParam(value = "bookId", required = true)  int bookId);

@@ -1,101 +1,119 @@
 package se.magnus.microservices.core.comment;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@SpringBootTest(classes=CommentServiceApplicationTests.class, webEnvironment=RANDOM_PORT)
+import static org.junit.Assert.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static reactor.core.publisher.Mono.just;
+
+import se.magnus.microservices.core.comment.persistence.*;
+import se.magnus.api.core.comment.*;
+
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.data.mongodb.port: 0" })
 @RunWith(SpringRunner.class)
 class CommentServiceApplicationTests {
 	
 	@Autowired
 	private WebTestClient client;
-
-	@Test
-	void contextLoads() {
-	}
 	
+	@Autowired
+	private CommentRepository repository;
+
+	@Before
+	public void setupDb() {
+		repository.deleteAll();
+	}
+
 	@Test
 	public void getCommentsByBookId() {
 
 		int bookId = 1;
 
-		client.get()
-			.uri("/comment?bookId=" + bookId)
-			.accept(APPLICATION_JSON)
-			.exchange()
-			.expectStatus().isOk()
-			.expectHeader().contentType(APPLICATION_JSON)
-			.expectBody()
-			.jsonPath("$.length()").isEqualTo(3)
-			.jsonPath("$[0].bookID").isEqualTo(bookId);
+		postAndVerifyComment(bookId, 1, OK);
+		postAndVerifyComment(bookId, 2, OK);
+		postAndVerifyComment(bookId, 3, OK);
+
+		assertEquals(3, repository.findByBookId(bookId).size());
 	}
-	
+
+	@Test
+	public void deleteComment() {
+
+		int bookId = 1;
+		int commentId = 1;
+
+		postAndVerifyComment(bookId, commentId, OK);
+		assertEquals(1, repository.findByBookId(bookId).size());
+
+		deleteAndVerifyCommentByBookId(bookId, OK);
+		assertEquals(0, repository.findByBookId(bookId).size());
+
+		deleteAndVerifyCommentByBookId(bookId, OK);
+	}
+
 	@Test
 	public void getCommentsMissingParameter() {
 
-		client.get()
-			.uri("/comment")
-			.accept(APPLICATION_JSON)
-			.exchange()
-			.expectStatus().isEqualTo(BAD_REQUEST)
-			.expectHeader().contentType(APPLICATION_JSON)
-			.expectBody()
-			.jsonPath("$.path").isEqualTo("/comment")
-			.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
+		getAndVerifyCommentByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/comment")
+				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
 	}
-	
-	@Test
-	public void getCommentsInvalidParameter() {
 
-		client.get()
-			.uri("/comment?bookId=no-integer")
-			.accept(APPLICATION_JSON)
-			.exchange()
-			.expectStatus().isEqualTo(BAD_REQUEST)
-			.expectHeader().contentType(APPLICATION_JSON)
-			.expectBody()
-			.jsonPath("$.path").isEqualTo("/comment")
-			.jsonPath("$.message").isEqualTo("Type mismatch.");
+	@Test
+	public void getCommentInvalidParameter() {
+
+		getAndVerifyCommentByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+				.isEqualTo("/comment").jsonPath("$.message").isEqualTo("Type mismatch.");
+
 	}
-	
+
 	@Test
-	public void getCommentsNotFound() {
+	public void getCommentNotFound() {
 
-		int bookIdNotFound = 113;
+		getAndVerifyCommentByBookId("?bookId=113", OK).jsonPath("$.length()").isEqualTo(0);
 
-		client.get()
-			.uri("/comment?bookId=" + bookIdNotFound)
-			.accept(APPLICATION_JSON)
-			.exchange()
-			.expectStatus().isOk()
-			.expectHeader().contentType(APPLICATION_JSON)
-			.expectBody()
-			.jsonPath("$.length()").isEqualTo(0);
 	}
-	
+
 	@Test
-	public void getCommentsInvalidParameterNegativeValue() {
+	public void getCommentInvalidParameterNegativeValue() {
 
 		int bookIdInvalid = -1;
 
-		client.get()
-			.uri("/comment?bookId=" + bookIdInvalid)
-			.accept(APPLICATION_JSON)
-			.exchange()
-			.expectStatus().isEqualTo(UNPROCESSABLE_ENTITY)
-			.expectHeader().contentType(APPLICATION_JSON)
-			.expectBody()
-			.jsonPath("$.path").isEqualTo("/comment")
-			.jsonPath("$.message").isEqualTo("Invalid bookId: " + bookIdInvalid);
+		getAndVerifyCommentByBookId("?bookId=" + bookIdInvalid,
+				UNPROCESSABLE_ENTITY).jsonPath("$.path").isEqualTo("/comment").jsonPath("$.message")
+						.isEqualTo("Invalid bookId: " + bookIdInvalid);
+
 	}
 
+	private WebTestClient.BodyContentSpec getAndVerifyCommentByBookId(String bookIdQuery,
+		HttpStatus expectedStatus) {
+		return client.get()
+				.uri("/comment" + bookIdQuery)
+				.accept(APPLICATION_JSON)
+				.exchange()
+				.expectStatus().isEqualTo(expectedStatus)
+				.expectHeader().contentType(APPLICATION_JSON)
+				.expectBody();
+	}
+
+	private WebTestClient.BodyContentSpec postAndVerifyComment(int bookId, int commentId,
+		HttpStatus expectedStatus) {
+		Comment comment = new Comment(bookId, commentId, "Author 1", "content 1", "SA");
+		return client.post().uri("/comment").body(just(commentId), Comment.class).accept(APPLICATION_JSON).exchange()
+				.expectStatus().isEqualTo(expectedStatus).expectHeader().contentType(APPLICATION_JSON).expectBody();
+	}
+
+	private WebTestClient.BodyContentSpec deleteAndVerifyCommentByBookId(int bookId,
+		HttpStatus expectedStatus) {
+		return client.delete().uri("/book-theme-night?bookId=" + bookId).accept(APPLICATION_JSON)
+				.exchange().expectStatus().isEqualTo(expectedStatus).expectBody();
+	}
 }

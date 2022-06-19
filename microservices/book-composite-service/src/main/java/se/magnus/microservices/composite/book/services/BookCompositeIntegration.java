@@ -49,29 +49,213 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 		ratingServiceUrl = "http://" + ratingServiceHost +   ":" + ratingServicePort + "/rating?bookId=";
 	}
 	
+	@Override
 	public BookModel getBook(int bookId) {
+        try {
+            String url = bookServiceUrl + "/" + bookId;
+            LOG.debug("Will call the getBook API by URL: {}", url);
+
+            BookModel book = restTemplate.getForObject(url, BookModel.class);
+            LOG.debug("Found a book with id: {}", book.getBookId());
+
+            return book;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+	}
+	
+	@Override
+	public BookModel createBook(BookModel body) {
+
 		try {
-			String url = bookServiceUrl + bookId;
-			BookModel book = restTemplate.getForObject(url, BookModel.class);
-			LOG.warn("Aha ovde sam, bookId je: ");
+			String url = bookServiceUrl;
+			LOG.debug("Will post a new book to URL: {}", url);
+
+			BookModel book = restTemplate.postForObject(url, body, BookModel.class);
+			LOG.debug("Created a book with id: {}", book.getBookId());
+
 			return book;
+
 		} catch (HttpClientErrorException ex) {
-
-			switch (ex.getStatusCode()) {
-
-			case NOT_FOUND:
-				throw new NotFoundException(getErrorMessage(ex));
-
-			case UNPROCESSABLE_ENTITY:
-				throw new InvalidInputException(getErrorMessage(ex));
-
-			default:
-				LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
-				LOG.warn("Error body: {}", ex.getResponseBodyAsString());
-				throw ex;
-			}
+			throw handleHttpClientException(ex);
 		}
 	}
+	
+	@Override
+	public void deleteBook(int bookId) {
+		try {
+			String url = bookServiceUrl + "?bookId=" + bookId;
+			LOG.debug("Will call the deleteBook API on URL: {}", url);
+
+			restTemplate.delete(url);
+
+		} catch (HttpClientErrorException ex) {
+			throw handleHttpClientException(ex);
+		}
+	}
+	
+	@Override
+    public BookThemeNight createBookThemeNight(BookThemeNight body) {
+
+        try {
+            String url = bookThemeNightServiceUrl;
+            LOG.debug("Will post a new bookThemeNight to URL: {}", url);
+
+            BookThemeNight bookThemeNight = restTemplate.postForObject(url, body, BookThemeNight.class);
+            LOG.debug("Created a book theme night with id: {}", bookThemeNight.getBookId());
+
+            return bookThemeNight;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+	
+	@Override
+    public List<BookThemeNight> getBookThemeNights(int bookId) {
+
+        try {
+            String url = bookThemeNightServiceUrl + "?bookId=" + bookId;
+
+            LOG.debug("Will call the getBookThemeNights API on URL: {}", url);
+            List<BookThemeNight> bookThemeNights = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<BookThemeNight>>() {}).getBody();
+
+            LOG.debug("Found {} bookThemeNights for a book with id: {}", bookThemeNights.size(), bookId);
+            return bookThemeNights;
+
+        } catch (Exception ex) {
+            LOG.warn("Got an exception while requesting bookThemeNights, return zero bookThemeNights: {}", ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public void deleteBookThemeNight(int bookId) {
+        try {
+            String url = bookThemeNightServiceUrl + "?bookId=" + bookId;
+            LOG.debug("Will call the deleteBookThemeNights API on URL: {}", url);
+
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+    
+	
+	@Override
+    public Comment createComment(Comment body) {
+
+        try {
+            String url = commentServiceUrl;
+            LOG.debug("Will post a new comment to URL: {}", url);
+
+            Comment comment = restTemplate.postForObject(url, body, Comment.class);
+            LOG.debug("Created a comment with id: {}", comment.getBookId());
+
+            return comment;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+	
+	@Override
+    public List<Comment> getComments(int bookId) {
+
+        try {
+            String url = commentServiceUrl + "?bookId=" + bookId;
+
+            LOG.debug("Will call the getComments API on URL: {}", url);
+            List<Comment> comments = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Comment>>() {}).getBody();
+
+            LOG.debug("Found {} bookThemeNights for a book with id: {}", comments.size(), bookId);
+            return comments;
+
+        } catch (Exception ex) {
+            LOG.warn("Got an exception while requesting bookThemeNights, return zero bookThemeNights: {}", ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public void deleteComment(int bookId) {
+        try {
+            String url = commentServiceUrl + "?bookId=" + bookId;
+            LOG.debug("Will call the deleteComment API on URL: {}", url);
+
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+    
+	@Override
+    public Rating createRating(Rating body) {
+
+        try {
+            String url = ratingServiceUrl;
+            LOG.debug("Will post a new comment to URL: {}", url);
+
+            Rating rating = restTemplate.postForObject(url, body, Rating.class);
+            LOG.debug("Created a rating with id: {}", rating.getBookId());
+
+            return rating;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+	
+	@Override
+    public List<Rating> getRatings(int bookId) {
+
+        try {
+            String url = ratingServiceUrl + "?bookId=" + bookId;
+
+            LOG.debug("Will call the getRatings API on URL: {}", url);
+            List<Rating> ratings = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Rating>>() {}).getBody();
+
+            LOG.debug("Found {} ratings for a book with id: {}", ratings.size(), bookId);
+            return ratings;
+
+        } catch (Exception ex) {
+            LOG.warn("Got an exception while requesting ratings, return zero ratings: {}", ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public void deleteRating(int bookId) {
+        try {
+            String url = ratingServiceUrl + "?bookId=" + bookId;
+            LOG.debug("Will call the deleteRating API on URL: {}", url);
+
+            restTemplate.delete(url);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
+    }
+	
+	private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
+        switch (ex.getStatusCode()) {
+
+        case NOT_FOUND:
+            return new NotFoundException(getErrorMessage(ex));
+
+        case UNPROCESSABLE_ENTITY :
+            return new InvalidInputException(getErrorMessage(ex));
+
+        default:
+            LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
+            LOG.warn("Error body: {}", ex.getResponseBodyAsString());
+            return ex;
+        }
+    }
+
 	
 	private String getErrorMessage(HttpClientErrorException ex) {
 		try {
@@ -81,45 +265,5 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 		}
 	}
 	
-	public List<BookThemeNight> getBookThemeNights(int bookId) {
-		try {
-			String url = bookThemeNightServiceUrl + bookId;
-			List<BookThemeNight> bookThemeNights = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<BookThemeNight>>() {
-				
-			}).getBody();
-			return bookThemeNights;
-		} catch (Exception ex) {
-			LOG.warn("Got an exception while requesting book theme nights, return zero book theme nights: {}",
-					ex.getMessage());
-			return new ArrayList<>();
-		}
-	}
 	
-	public List<Comment> getComments(int bookId) {
-		try {
-			String url = commentServiceUrl + bookId;
-			List<Comment> comments = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Comment>>() {
-			}).getBody();
-			
-			return comments;
-		} catch (Exception ex) {
-			LOG.warn("Got an exception while requesting comments, return zero comments: {}",
-					ex.getMessage());
-			return new ArrayList<>();
-		}
-	}
-	
-	public List<Rating> getRatings(int bookId) {
-		try {
-			String url = ratingServiceUrl + bookId;
-			List<Rating> ratings = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Rating>>() {
-			}).getBody();
-			
-			return ratings;
-		} catch (Exception ex) {
-			LOG.warn("Got an exception while requesting ratings, return zero ratings: {}",
-					ex.getMessage());
-			return new ArrayList<>();
-		}
-	}
 }

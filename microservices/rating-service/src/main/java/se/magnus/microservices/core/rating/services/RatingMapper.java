@@ -7,6 +7,8 @@ import org.mapstruct.Mappings;
 import se.magnus.microservices.core.rating.persistence.RatingEntity;
 import se.magnus.api.core.rating.Rating;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface RatingMapper {
 
@@ -20,4 +22,7 @@ public interface RatingMapper {
         @Mapping(target = "version", ignore = true)
     })
     RatingEntity apiToEntity(Rating apiRating);
+    
+    List<Rating> entityListToApiList(List<RatingEntity> entity);
+    List<RatingEntity> apiListToEntityList(List<Rating> api);
 }

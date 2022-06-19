@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import se.magnus.api.core.bookthemenight.BookThemeNight;
 import se.magnus.microservices.core.bookthemenight.persistence.BookThemeNightEntity;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface BookThemeNightMapper {
@@ -19,5 +20,8 @@ public interface BookThemeNightMapper {
         @Mapping(target = "version", ignore = true)
     })
     BookThemeNightEntity apiToEntity(BookThemeNight apiBookThemeNight);
+    
+    List<BookThemeNight> entityListToApiList(List<BookThemeNightEntity> entity);
+    List<BookThemeNightEntity> apiListToEntityList(List<BookThemeNight> api);
 	
 }

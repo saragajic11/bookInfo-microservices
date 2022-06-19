@@ -7,7 +7,7 @@ public class BookModel {
     private final String name;
     private final Date releaseDate;
     public final String language;
-    private final String serviceAddress;
+    private String serviceAddress;
 
     public BookModel() {
         bookId = 0;
@@ -44,4 +44,10 @@ public class BookModel {
     public String getServiceAddress() {
         return serviceAddress;
     }
+
+	public void setServiceAddress(String serviceAddress) {
+		this.serviceAddress = serviceAddress;
+	}
+    
+    
 }

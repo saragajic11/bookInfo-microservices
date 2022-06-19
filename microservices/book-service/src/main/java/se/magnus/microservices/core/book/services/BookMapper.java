@@ -1,10 +1,10 @@
 package se.magnus.microservices.core.book.services;
 
 import se.magnus.microservices.core.book.persistence.BookEntity;
-import se.magnus.api.core.book.BookModel
-import se.magnus.microservices.core.comment.services.Mapping;
-import se.magnus.microservices.core.comment.services.Mappings;
-import se.magnus.microservices.core.rating.services.Mapper;
+import se.magnus.api.core.book.BookModel;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
 public interface BookMapper {

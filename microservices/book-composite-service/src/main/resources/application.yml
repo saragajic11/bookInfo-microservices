@@ -45,6 +45,21 @@ api:
         
         ## Negative book ids
         422 - An <b>Unprocessable Entity</b> error will be returned
+    create-composite-book:
+      description: Creates a composite book
+      notes: |
+        # Normal response
+        The composite book information posted to the API will be splitted up and stored as separate book-info, comment, rating and book theme night entities.
+        # Expected error responses
+        1. If a book with the same bookId as specified in the posted information already exists,
+           an <b>422 - Unprocessable Entity</b> error with a "duplicate key" error message will be returned
+    delete-composite-book:
+      description: Deletes a book composite
+      notes: |
+        # Normal response
+        Entities for book information, comment, rating and book theme night related to the specificed bookId will be deleted.
+        The implementation of the delete method is idempotent, i.e. it can be called several times with the same response.
+        This means that a delete request of a non existing insurance company will return <b>200 Ok</b>.
 
 logging:
   level:

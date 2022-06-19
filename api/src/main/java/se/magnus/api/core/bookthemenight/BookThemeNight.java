@@ -8,7 +8,7 @@ public class BookThemeNight {
     private final String name;
     private final Date startDate;
     public final String location;
-    private final String serviceAddress;
+    private String serviceAddress;
 
     public BookThemeNight() {
         bookId = 0;
@@ -51,4 +51,8 @@ public class BookThemeNight {
     public String getServiceAddress() {
         return serviceAddress;
     }
+    
+	public void setServiceAddress(String serviceAddress) {
+		this.serviceAddress = serviceAddress;
+	}
 }

@@ -7,6 +7,8 @@ import org.mapstruct.Mappings;
 import se.magnus.microservices.core.comment.persistence.CommentEntity;
 import se.magnus.api.core.comment.Comment;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
 	
@@ -20,6 +22,9 @@ public interface CommentMapper {
         @Mapping(target = "version", ignore = true)
     })
     CommentEntity apiToEntity(Comment apiComment);
+    
+    List<Comment> entityListToApiList(List<CommentEntity> entity);
+    List<CommentEntity> apiListToEntityList(List<Comment> api);
 	
 
 }

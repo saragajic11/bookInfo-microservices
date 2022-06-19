@@ -5,7 +5,7 @@ public class Comment {
     private final int commentId;
     private final String author;
     private final String content;
-    private final String serviceAddress;
+    private String serviceAddress;
 
     public Comment() {
         bookId = 0;
@@ -42,4 +42,8 @@ public class Comment {
     public String getServiceAddress() {
         return serviceAddress;
     }
+    
+	public void setServiceAddress(String serviceAddress) {
+		this.serviceAddress = serviceAddress;
+	}
 }

@@ -9,33 +9,62 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.api.core.bookthemenight.*;
+import se.magnus.microservices.core.bookthemenight.persistence.*;
 import se.magnus.util.http.ServiceUtil;
-import java.util.List;
 import se.magnus.util.exceptions.*;
+import org.springframework.dao.DuplicateKeyException;
 
 @RestController
 public class BookThemeNightServiceImpl implements BookThemeNightService {
 
-	@Autowired
 	private final ServiceUtil serviceUtil;
+	private BookThemeNightRepository repository;
+	private BookThemeNightMapper mapper;
+	private static final Logger LOG = LoggerFactory.getLogger(BookThemeNightServiceImpl.class);
 	
-	public BookThemeNightServiceImpl(ServiceUtil serviceUtil) {
+
+	@Autowired
+	public BookThemeNightServiceImpl(ServiceUtil serviceUtil, BookThemeNightRepository repository, BookThemeNightMapper mapper) {
 		this.serviceUtil = serviceUtil;
+		this.repository = repository;
+		this.mapper = mapper;
 	}
 	
 	@Override
 	public List<BookThemeNight> getBookThemeNights(int bookId) {
-		if(bookId < 1) {
-			throw new InvalidInputException("Invalid book id: " + bookId);
+		if (bookId < 1)
+			throw new InvalidInputException("Invalid bookId: " + bookId);
+
+		List<BookThemeNightEntity> entityList = repository.findByBookId(bookId);
+		List<BookThemeNight> list = mapper.entityListToApiList(entityList);
+		list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
+
+		LOG.debug("getBookThemeNights: response size: {}", list.size());
+
+		return list;
+	}
+	
+	
+	@Override
+	public BookThemeNight createBookThemeNight(BookThemeNight body) {
+		try {
+			BookThemeNightEntity entity = mapper.apiToEntity(body);
+			BookThemeNightEntity newEntity = repository.save(entity);
+			LOG.debug("createBookThemeNight: created a bookThemeNight entity: {}/{}", body.getBookId(),
+						body.getBookThemeNightId());
+			return mapper.entityToApi(newEntity);
+
+			} catch (DuplicateKeyException dke) {
+				throw new InvalidInputException("Duplicate key, BookId Id: " + body.getBookId() + ", BookThemeNight Id:"
+						+ body.getBookThemeNightId());
+			}
 		}
-		if(bookId == 13) {
-			throw new NotFoundException("No book theme nights for provided bookId: " + bookId);
-		}
-        List<BookThemeNight> list = new ArrayList<>();
-        list.add(new BookThemeNight(bookId, 1, "Book Theme Night 1", new Date(), "Location 1", serviceUtil.getServiceAddress()));
-        list.add(new BookThemeNight(bookId, 2, "Book Theme Night 2", new Date(), "Location 2", serviceUtil.getServiceAddress()));
-        list.add(new BookThemeNight(bookId, 3, "Book Theme Night 3", new Date(), "Location 3", serviceUtil.getServiceAddress()));
-        return list;
+	
+	@Override
+	public void deleteBookThemeNight(int bookId) {
+		LOG.debug("deleteBookThemeNights: tries to delete bookThemeNight for the book with bookId: {}",
+				bookId);
+		repository.deleteAll(repository.findByBookId(bookId));
 	}
 
 }

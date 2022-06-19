@@ -14,17 +14,60 @@ import se.magnus.api.core.comment.*;
 import se.magnus.api.core.rating.*;
 import se.magnus.util.http.ServiceUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 public class BookCompositeServiceImpl implements BookCompositeService {
 
 	private final ServiceUtil serviceUtil;
 	private final BookCompositeIntegration bookCompositeIntegration;
+    private static final Logger LOG = LoggerFactory.getLogger(BookCompositeServiceImpl.class);
 	
 	@Autowired
 	public BookCompositeServiceImpl(ServiceUtil serviceUtil, BookCompositeIntegration bookCompositeIntegration) {
 		this.serviceUtil = serviceUtil;
 		this.bookCompositeIntegration = bookCompositeIntegration;
 	}
+	
+	@Override
+    public void createCompositeBook(BookAggregateModel body) {
+
+        try {
+
+            LOG.debug("createCompositeBook: creates a new composite entity for bookId: {}", body.getBookId());
+
+            BookModel book = new BookModel(body.getBookId(), body.getName(), body.getReleaseDate(), body.getLanguage(), null);
+            bookCompositeIntegration.createBook(book);
+
+            if (body.getBookThemeNights() != null) {
+                body.getBookThemeNights().forEach(r -> {
+                    BookThemeNight bookThemeNight = new BookThemeNight(body.getBookId(), r.getBookThemeNightId(), r.getName(), r.getStartDate(), r.getLocation(), null);
+                    bookCompositeIntegration.createBookThemeNight(bookThemeNight);
+                });
+            }
+
+            if (body.getComments() != null) {
+                body.getComments().forEach(r -> {
+                    Comment comment = new Comment(body.getBookId(), r.getCommentId(), r.getAuthor(), r.getContent(), null);
+                    bookCompositeIntegration.createComment(comment);
+                });
+            }
+            
+            if (body.getRatings() != null) {
+                body.getRatings().forEach(r -> {
+                    Rating rating = new Rating(body.getBookId(), r.getRatingId(), r.getAuthor(), r.getRating(), null);
+                    bookCompositeIntegration.createRating(rating);
+                });
+            }
+
+            LOG.debug("createCompositeBook: composite entites created for bookId: {}", body.getBookId());
+
+        } catch (RuntimeException re) {
+            LOG.warn("createCompositeBook failed", re);
+            throw re;
+        }
+    }
 	
 	@Override
 	public BookAggregateModel getBook(int bookId) {
@@ -78,4 +121,17 @@ public class BookCompositeServiceImpl implements BookCompositeService {
 		return new BookAggregateModel(bookId, name, releaseDate, language, ratingSummary, commentSummary,
 				bookThemeNightSummary, serviceAddresses);
 	}
+	
+    @Override
+    public void deleteCompositeBook(int bookId) {
+
+        LOG.debug("deleteCompositeBook: Deletes a book aggregate for bookId: {}", bookId);
+
+        bookCompositeIntegration.deleteBook(bookId);
+        bookCompositeIntegration.deleteBookThemeNight(bookId);
+        bookCompositeIntegration.deleteComment(bookId);
+        bookCompositeIntegration.deleteRating(bookId);
+
+        LOG.debug("getCompositeBook: aggregate entities deleted for bookId: {}", bookId);
+    }
 }
