@@ -13,8 +13,8 @@ public interface BookService {
     /**
      * Sample usage: curl $HOST:$PORT/book/1
      *
-     * @param productId
-     * @return the product, if found, else null
+     * @param bookId
+     * @return the book, if found, else null
      */
     @GetMapping(
         value    = "/book/{bookId}",
@@ -27,6 +27,6 @@ public interface BookService {
 	        produces = "application/json")
 	    BookModel createBook(@RequestBody BookModel body);
 	
-	@DeleteMapping(value = "/book/{bookId}}")
+	@DeleteMapping(value = "/book/{bookId}")
     void deleteBook(@PathVariable int bookId);
 }

@@ -113,7 +113,7 @@ class CommentServiceApplicationTests {
 
 	private WebTestClient.BodyContentSpec deleteAndVerifyCommentByBookId(int bookId,
 		HttpStatus expectedStatus) {
-		return client.delete().uri("/book-theme-night?bookId=" + bookId).accept(APPLICATION_JSON)
+		return client.delete().uri("/comment?bookId=" + bookId).accept(APPLICATION_JSON)
 				.exchange().expectStatus().isEqualTo(expectedStatus).expectBody();
 	}
 }

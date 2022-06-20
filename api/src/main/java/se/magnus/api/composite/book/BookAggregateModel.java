@@ -13,6 +13,17 @@ public class BookAggregateModel {
     private final List<BookThemeNightSummary> bookThemeNights;
     private final ServiceAddresses serviceAddresses;
     
+    public BookAggregateModel() {
+        bookId = 0;
+        name = null;
+        releaseDate = null;
+        language = null;
+        ratings = null;
+        comments = null;
+        bookThemeNights = null;
+        serviceAddresses = null;
+    }
+    
     public BookAggregateModel(int bookId, String name, Date releaseDate, String language, List<RatingSummary> ratings, List<CommentSummary> comments, List<BookThemeNightSummary> bookThemeNights, ServiceAddresses serviceAddresses) {
         this.bookId = bookId;
         this.name = name;

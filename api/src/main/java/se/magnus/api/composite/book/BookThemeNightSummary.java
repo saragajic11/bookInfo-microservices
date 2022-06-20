@@ -9,6 +9,13 @@ public class BookThemeNightSummary {
     private final String name;
     private final Date startDate;
     public final String location;
+    
+    public BookThemeNightSummary() {
+    	this.bookThemeNightId = 0;
+    	this.name = null;
+    	this.startDate = null;
+    	this.location = null;
+    }
 
     public BookThemeNightSummary(int bookThemeNightId, String name, Date startDate, String location) {
         this.bookThemeNightId = bookThemeNightId;

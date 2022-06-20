@@ -6,6 +6,12 @@ public class RatingSummary {
     private final int rating;
     private final String author;
 
+    public RatingSummary() {
+        this.ratingId = 0;
+        this.author = null;
+        this.rating = 0;
+    }
+    
     public RatingSummary(int ratingId, String author, int rating) {
         this.ratingId = ratingId;
         this.author = author;

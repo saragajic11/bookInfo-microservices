@@ -5,6 +5,12 @@ public class CommentSummary {
     private final int commentId;
     private final String author;
     private final String content;
+    
+    public CommentSummary() {
+        this.commentId = 0;
+        this.author = null;
+        this.content = null;
+    }
 
     public CommentSummary(int commentId, String author, String content) {
         this.commentId = commentId;
