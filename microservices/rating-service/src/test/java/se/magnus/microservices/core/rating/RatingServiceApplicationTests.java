@@ -21,7 +21,7 @@ import se.magnus.api.core.rating.*;
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.datasource.url=jdbc:h2:mem:review-db" })
 @RunWith(SpringRunner.class)
 
-class RatingServiceApplicationTests {
+/*public*/ class RatingServiceApplicationTests {
 	
 	
 	@Autowired
@@ -88,7 +88,7 @@ class RatingServiceApplicationTests {
 
 		int bookIdInvalid = -1;
 
-		getAndVerifyRatingByBookId("?rating=" + bookIdInvalid,
+		getAndVerifyRatingByBookId("?bookId=" + bookIdInvalid,
 				UNPROCESSABLE_ENTITY).jsonPath("$.path").isEqualTo("/rating").jsonPath("$.message")
 						.isEqualTo("Invalid bookId: " + bookIdInvalid);
 	}
@@ -105,11 +105,10 @@ class RatingServiceApplicationTests {
 	
 	private WebTestClient.BodyContentSpec postAndVerifyRating(int bookId, int ratingId,
 			HttpStatus expectedStatus) {
-		Rating rating = new Rating(bookId, ratingId, "author 1", 5, "SA");
-		return client.post().uri("/rating").body(just(rating), Rating.class)
-				.accept(APPLICATION_JSON).exchange().expectStatus().isEqualTo(expectedStatus).expectHeader()
-				.contentType(APPLICATION_JSON).expectBody();
-	}
+			Rating rating = new Rating(bookId, ratingId, "author 1", 5, "SA");
+			return client.post().uri("/rating").body(just(rating), Rating.class).accept(APPLICATION_JSON).exchange()
+					.expectStatus().isEqualTo(expectedStatus).expectHeader().contentType(APPLICATION_JSON).expectBody();
+		}
 
 	private WebTestClient.BodyContentSpec deleteAndVerifyRatingByBookId(int bookId,
 			HttpStatus expectedStatus) {

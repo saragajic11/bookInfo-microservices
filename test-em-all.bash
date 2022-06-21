@@ -77,6 +77,53 @@ function waitForService() {
     done
 }
 
+function recreateComposite() {
+    local bookId=$1
+    local composite=$2
+
+    assertCurl 200 "curl -X DELETE http://$HOST:$PORT/book-composite/${bookId} -s"
+    curl -X POST http://$HOST:$PORT/book-composite -H "Content-Type: application/json" --data "$composite"
+}
+
+function setupTestdata() {
+
+    body=\
+'{"bookId":1,"name":"Book 1","releaseDate":"2021-08-12","language":"Language 1", "ratings":[
+        {"ratingId":1,"author":"Author 1","rating":1},
+        {"ratingId":2,"author":"Author 2","rating":2},
+        {"ratingId":3,"author":"Author 3","rating":3},
+    ], "comments":[
+        {"commentId":1,"author":"Author 1","content":"content 1"},
+        {"commentId":2,"author":"Author 2","content":"content 2"},
+        {"commentId":3,"author":"Author 3","content":"content 3"}
+    ], "bookThemeNights":[
+        {"bookThemeNightId":1,"name":"name 1","startDate":"2021-08-12", "location": "Location 1"},
+        {"bookThemeNightId":2,"name":"name 2","startDate":"2021-08-12", "location": "Location 2"},
+        {"bookThemeNightId":3,"name":"name 3","startDate":"2021-08-12", "location": "Location 3"}
+    ]}'
+    recreateComposite 1 "$body"
+
+    body=\
+'{"bookId":1,"name":"Book 1","releaseDate":"2021-08-12","language":"Language 1", "ratings":[
+        {"ratingId":1,"author":"Author 1","rating":1},
+        {"ratingId":2,"author":"Author 2","rating":2},
+        {"ratingId":3,"author":"Author 3","rating":3},
+    ]}'
+    recreateComposite 113 "$body"
+
+    body=\
+'{"bookId":1,"name":"Book 1","releaseDate":"2021-08-12","language":"Language 1", "comments":[
+        {"commentId":1,"author":"Author 1","content":"content 1"},
+        {"commentId":2,"author":"Author 2","content":"content 2"},
+        {"commentId":3,"author":"Author 3","content":"content 3"}
+    ], "bookThemeNights":[
+        {"bookThemeNightId":1,"name":"name 1","startDate":"2021-08-12", "location": "Location 1"},
+        {"bookThemeNightId":2,"name":"name 2","startDate":"2021-08-12", "location": "Location 2"},
+        {"bookThemeNightId":3,"name":"name 3","startDate":"2021-08-12", "location": "Location 3"}
+    ]}'
+    recreateComposite 213 "$body"
+
+}
 
 set -e
 
@@ -94,7 +141,9 @@ then
     docker-compose up -d
 fi
 
-waitForService http://$HOST:$PORT/book-composite/1
+waitForService curl -X DELETE http://$HOST:$PORT/book-composite/13
+
+setupTestdata
 
 # Verify that a normal request works
 assertCurl 200 "curl http://$HOST:$PORT/book-composite/1 -s"

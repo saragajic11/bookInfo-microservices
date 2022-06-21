@@ -27,9 +27,9 @@ import se.magnus.microservices.composite.book.services.*;
 import se.magnus.util.exceptions.*;
 import java.util.Date;
 
-@SpringBootTest(classes=BookCompositeServiceApplicationTests.class)
+@SpringBootTest(webEnvironment=RANDOM_PORT)
 @RunWith(SpringRunner.class)
-class BookCompositeServiceApplicationTests {
+public class BookCompositeServiceApplicationTests {
 	
 	private static final int BOOK_ID_OK = 1;
 	private static final int BOOK_ID_NOT_FOUND = 2;
@@ -114,7 +114,7 @@ class BookCompositeServiceApplicationTests {
 	}
 
 	@Test
-	public void getProductInvalidInput() {
+	public void getBookInvalidInput() {
 
 		getAndVerifyBook(BOOK_ID_INVALID, UNPROCESSABLE_ENTITY)
             .jsonPath("$.path").isEqualTo("/book-composite/" + BOOK_ID_INVALID)

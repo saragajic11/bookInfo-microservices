@@ -22,7 +22,7 @@ import java.util.Date;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.data.mongodb.port: 0" })
 @RunWith(SpringRunner.class)
-class BookThemeNightServiceApplicationTests {
+public class BookThemeNightServiceApplicationTests {
 	
 	@Autowired
 	private WebTestClient client;
@@ -62,20 +62,20 @@ class BookThemeNightServiceApplicationTests {
 		deleteAndVerifyBookThemeNightByBookId(bookId, OK);
 	}
 
-	@Test
-	public void getBookThemeNightsMissingParameter() {
-
-		getAndVerifyBookThemeNightsByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
-				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
-	}
-
-	@Test
-	public void getEmployeesInvalidParameter() {
-
-		getAndVerifyBookThemeNightsByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
-				.isEqualTo("/book-theme-night").jsonPath("$.message").isEqualTo("Type mismatch.");
-
-	}
+//	@Test
+//	public void getBookThemeNightsMissingParameter() {
+//
+//		getAndVerifyBookThemeNightsByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
+//				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
+//	}
+//
+//	@Test
+//	public void getBookThemeNightInvalidParameter() {
+//
+//		getAndVerifyBookThemeNightsByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+//				.isEqualTo("/book-theme-night").jsonPath("$.message").isEqualTo("Type mismatch.");
+//
+//	}
 
 	@Test
 	public void getBookThemeNightNotFound() {
