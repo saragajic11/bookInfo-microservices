@@ -1,10 +1,10 @@
 package se.magnus.api.core.rating;
 
 public class Rating {
-    private final int bookId;
-    private final int ratingId;
-    private final int rating;
-    private final String author;
+    private int bookId;
+    private int ratingId;
+    private int rating;
+    private String author;
     private String serviceAddress;
 
     public Rating() {
@@ -24,7 +24,7 @@ public class Rating {
     }
 
     public int getBookId() {
-        return rating;
+        return bookId;
     }
 
     public int getRatingId() {
@@ -46,4 +46,22 @@ public class Rating {
 	public void setServiceAddress(String serviceAddress) {
 		this.serviceAddress = serviceAddress;
 	}
+
+	public void setBookId(int bookId) {
+		this.bookId = bookId;
+	}
+
+	public void setRatingId(int ratingId) {
+		this.ratingId = ratingId;
+	}
+
+	public void setRating(int rating) {
+		this.rating = rating;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+	
+	
 }

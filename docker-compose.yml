@@ -4,51 +4,62 @@ services:
   book:
     platform: linux/amd64
     build: microservices/book-service
-    mem_limit: 350m
+    mem_limit: 500m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       mongodb:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy      
 
   comment:
     platform: linux/amd64
     build: microservices/comment-service
-    mem_limit: 350m
+    mem_limit: 500m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       mongodb:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy        
 
   rating:
     platform: linux/amd64
     build: microservices/rating-service
-    mem_limit: 350m
+    mem_limit: 500m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       mysql:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy      
 
   book-theme-night:
     platform: linux/amd64
     build: microservices/book-theme-night-service
-    mem_limit: 350m
+    mem_limit: 500m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       mongodb:
         condition: service_healthy
-
+      rabbitmq:
+        condition: service_healthy
+        
   book-composite:
     platform: linux/amd64
     build: microservices/book-composite-service
-    mem_limit: 350m
+    mem_limit: 500m
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
       
   mongodb:
     platform: linux/amd64
@@ -78,4 +89,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-  
+      
+  rabbitmq:
+    platform: linux/amd64
+    image: rabbitmq:3.7.8-management
+    mem_limit: 350m
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

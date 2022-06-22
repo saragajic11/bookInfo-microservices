@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import reactor.core.publisher.Flux;
+
 import java.util.List;
 
 public interface CommentService {
@@ -19,7 +21,7 @@ public interface CommentService {
     @GetMapping(
         value    = "/comment",
         produces = "application/json")
-    List<Comment> getComments(@RequestParam(value = "bookId", required = true) int bookId);
+    Flux<Comment> getComments(@RequestParam(value = "bookId", required = true) int bookId);
     
 	@PostMapping(
 	        value    = "/comment",

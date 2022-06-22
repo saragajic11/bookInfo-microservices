@@ -7,10 +7,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.api.core.book.*;
-import se.magnus.microservices.core.book.persistence.*;
+import se.magnus.microservices.core.book.persistence.BookRepository;
+import se.magnus.microservices.core.book.persistence.BookEntity;
 import se.magnus.util.http.ServiceUtil;
 import se.magnus.util.exceptions.*;
 import org.springframework.dao.DuplicateKeyException;
+
+import reactor.core.publisher.Mono;
+import static reactor.core.publisher.Mono.error;
 
 @RestController
 public class BookServiceImpl implements BookService {
@@ -28,31 +32,35 @@ public class BookServiceImpl implements BookService {
 	}
 	
 	@Override
-	public BookModel getBook(int bookId) {
+	public Mono<BookModel> getBook(int bookId) {
 		if(bookId < 1) {
 			throw new InvalidInputException("Invalid book id: " + bookId);
 		}
-	    BookEntity entity = repository.findByBookId(bookId)
-	    		.orElseThrow(() -> new NotFoundException("No book found for bookId: " + bookId));
-	    BookModel response = mapper.entityToApi(entity);
-	    response.setServiceAddress(serviceUtil.getServiceAddress());
-	    return response;
+		return repository.findByBookId(bookId)
+				.switchIfEmpty(error(new NotFoundException("No book found for bookId: " + bookId)))
+				.log()
+				.map(e-> mapper.entityToApi(e))
+				.map(e-> { e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
 	}
 	
 	@Override
 	public BookModel createBook(BookModel body) {
-		try {
-			BookEntity entity = mapper.apiToEntity(body);
-			BookEntity newEntity = repository.save(entity);
-			return mapper.entityToApi(newEntity);
-		} catch(DuplicateKeyException dke) {
-			throw new InvalidInputException("Duplicate key, book id: " + body.getBookId());
-		}
+		if (body.getBookId() < 1) throw new InvalidInputException("Invalid bookId: " + body.getBookId());
+		BookEntity entity = mapper.apiToEntity(body);
+		Mono<BookModel> newEntity = repository.save(entity)
+            .log()
+            .onErrorMap(
+                DuplicateKeyException.class,
+                ex -> new InvalidInputException("Duplicate key, bookId: " + body.getBookId()))
+            .map(e -> mapper.entityToApi(e));;
+        return newEntity.block();     
 	}
 	
     @Override
     public void deleteBook(int bookId) {
+    	if (bookId < 1) throw new InvalidInputException("Invalid bookId: " + bookId);
+    	
         LOG.debug("deleteBook: tries to delete an entity with bookId: {}", bookId);
-        repository.findByBookId(bookId).ifPresent(e -> repository.delete(e));
+        repository.findByBookId(bookId).log().map(e -> repository.delete(e)).flatMap(e -> e).block(); 
     }
 }

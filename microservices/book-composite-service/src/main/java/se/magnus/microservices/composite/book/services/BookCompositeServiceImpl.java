@@ -16,6 +16,8 @@ import se.magnus.util.http.ServiceUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
+import java.util.stream.Collectors;
 
 @RestController
 public class BookCompositeServiceImpl implements BookCompositeService {
@@ -70,13 +72,15 @@ public class BookCompositeServiceImpl implements BookCompositeService {
     }
 	
 	@Override
-	public BookAggregateModel getBook(int bookId) {
-		BookModel book = bookCompositeIntegration.getBook(bookId);
-		List<BookThemeNight> bookThemeNights = bookCompositeIntegration.getBookThemeNights(bookId);
-		List<Comment> comments = bookCompositeIntegration.getComments(bookId);
-		List<Rating> ratings = bookCompositeIntegration.getRatings(bookId);
-		
-		return createBookAggregate(book, bookThemeNights, comments, ratings, serviceUtil.getServiceAddress());
+	public Mono<BookAggregateModel> getBook(int bookId) {
+		return Mono.zip(
+	            values -> createBookAggregate((BookModel) values[0], (List<BookThemeNight>) values[1], (List<Comment>) values[2], (List<Rating>) values[3], serviceUtil.getServiceAddress()),
+	            bookCompositeIntegration.getBook(bookId),
+	            bookCompositeIntegration.getBookThemeNights(bookId).collectList(),
+	            bookCompositeIntegration.getComments(bookId).collectList(),
+	            bookCompositeIntegration.getRatings(bookId).collectList())
+	            .doOnError(ex -> LOG.warn("getCompositeBook failed: {}", ex.toString()))
+	            .log();
 	}
 	
 	private BookAggregateModel createBookAggregate(BookModel book,

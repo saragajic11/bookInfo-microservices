@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface RatingService {
 
@@ -19,7 +19,7 @@ public interface RatingService {
     @GetMapping(
         value    = "/rating",
         produces = "application/json")
-    List<Rating> getRatings(@RequestParam(value = "bookId", required = true) int bookId);
+    Flux<Rating> getRatings(@RequestParam(value = "bookId", required = true) int bookId);
     
 	@PostMapping(
 	        value    = "/rating",

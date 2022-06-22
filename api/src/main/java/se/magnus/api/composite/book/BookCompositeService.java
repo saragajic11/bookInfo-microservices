@@ -7,6 +7,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import reactor.core.publisher.Mono;
 
 @Api(description = "REST API for composite book information")
 public interface BookCompositeService {
@@ -22,7 +23,7 @@ public interface BookCompositeService {
     @GetMapping(
         value    = "/book-composite/{bookId}",
         produces = "application/json")
-    BookAggregateModel getBook(@PathVariable int bookId);
+    Mono<BookAggregateModel> getBook(@PathVariable int bookId);
 	
 	@ApiOperation(value = "${api.book-composite.create-composite-book.description}", notes = "${api.book-composite.create-composite-book.notes}")
 	@ApiResponses(value = {

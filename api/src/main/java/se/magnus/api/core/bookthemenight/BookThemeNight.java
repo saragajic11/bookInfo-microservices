@@ -3,11 +3,11 @@ package se.magnus.api.core.bookthemenight;
 import java.util.Date;
 
 public class BookThemeNight {
-    private final int bookId;
-    private final int bookThemeNightId;
-    private final String name;
-    private final Date startDate;
-    public final String location;
+    private int bookId;
+    private int bookThemeNightId;
+    private String name;
+    private Date startDate;
+    public String location;
     private String serviceAddress;
 
     public BookThemeNight() {
@@ -55,4 +55,26 @@ public class BookThemeNight {
 	public void setServiceAddress(String serviceAddress) {
 		this.serviceAddress = serviceAddress;
 	}
+
+	public void setBookId(int bookId) {
+		this.bookId = bookId;
+	}
+
+	public void setBookThemeNightId(int bookThemeNightId) {
+		this.bookThemeNightId = bookThemeNightId;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+	
+	
 }

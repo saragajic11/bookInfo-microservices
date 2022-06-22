@@ -3,6 +3,8 @@ package se.magnus.microservices.core.bookthemenight;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -14,9 +16,20 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
-
 import se.magnus.microservices.core.bookthemenight.persistence.*;
 import se.magnus.api.core.bookthemenight.*;
+import se.magnus.api.core.book.*;
+
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.cloud.stream.messaging.Sink;
+
+import se.magnus.util.exceptions.*;
+import org.springframework.messaging.MessagingException;
+import se.magnus.api.event.Event;
+import org.springframework.messaging.support.GenericMessage;
+
+import static se.magnus.api.event.Event.Type.CREATE;
+import static se.magnus.api.event.Event.Type.DELETE;
 
 import java.util.Date;
 
@@ -30,22 +43,61 @@ public class BookThemeNightServiceApplicationTests {
 	@Autowired
 	private BookThemeNightRepository repository;
 
+	@Autowired
+	private Sink channels;
+
+	private AbstractMessageChannel input = null;
+
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+		input = (AbstractMessageChannel) channels.input();
+		repository.deleteAll().block();
 	}
+	
+	
+	private static final Logger LOG = LoggerFactory.getLogger(BookThemeNightServiceApplicationTests.class);
 
 	@Test
 	public void getBookThemeNightsByBookId() {
 
 		int bookId = 1;
 
-		postAndVerifyBookThemeNight(bookId, 1, OK);
-		postAndVerifyBookThemeNight(bookId, 2, OK);
-		postAndVerifyBookThemeNight(bookId, 3, OK);
-
-		assertEquals(3, repository.findByBookId(bookId).size());
+		sendCreateBookThemeNightEvent(bookId, 1);
+		sendCreateBookThemeNightEvent(bookId, 2);
+		sendCreateBookThemeNightEvent(bookId, 3);
+		
+		assertEquals(3, (long)repository.findByBookId(bookId).count().block());
+		
+		getAndVerifyBookThemeNightByBookId(bookId, OK)
+			.jsonPath("$.length()").isEqualTo(3)
+			.jsonPath("$[2].bookId").isEqualTo(bookId)
+			.jsonPath("$[2].bookThemeNightId").isEqualTo(3);
 	}
+	
+//	@Test
+//	public void duplicateError() {
+//
+//		int bookId = 1;
+//		int bookThemeNightId = 1;
+//
+//		sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
+//
+//		assertEquals(1, (long)repository.count().block());
+//
+//		try {
+//			sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
+//			fail("Expected a MessagingException here!");
+//		} catch (MessagingException me) {
+//			if (me.getCause() instanceof InvalidInputException)	{
+//				InvalidInputException iie = (InvalidInputException)me.getCause();
+//				assertEquals("Duplicate key, Book Id: 1, Book theme night Id:1", iie.getMessage());
+//			} else {
+//				fail("Expected a InvalidInputException as the root cause!");
+//			}
+//		}
+//
+//		assertEquals(1, (long)repository.count().block());
+//	}
 
 	@Test
 	public void deleteBookThemeNight() {
@@ -53,26 +105,26 @@ public class BookThemeNightServiceApplicationTests {
 		int bookId = 1;
 		int bookThemeNightId = 1;
 
-		postAndVerifyBookThemeNight(bookId, bookThemeNightId, OK);
-		assertEquals(1, repository.findByBookId(bookId).size());
+		sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
+		assertEquals(1, (long)repository.findByBookId(bookId).count().block());
 
-		deleteAndVerifyBookThemeNightByBookId(bookId, OK);
-		assertEquals(0, repository.findByBookId(bookId).size());
+		sendDeleteBookThemeNightEvent(bookId);
+		assertEquals(0, (long)repository.findByBookId(bookId).count().block());
 
-		deleteAndVerifyBookThemeNightByBookId(bookId, OK);
+		sendDeleteBookThemeNightEvent(bookId);
 	}
 
 //	@Test
 //	public void getBookThemeNightsMissingParameter() {
 //
-//		getAndVerifyBookThemeNightsByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
+//		getAndVerifyBookThemeNightByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
 //				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
 //	}
 //
 //	@Test
 //	public void getBookThemeNightInvalidParameter() {
 //
-//		getAndVerifyBookThemeNightsByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+//		getAndVerifyBookThemeNightByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
 //				.isEqualTo("/book-theme-night").jsonPath("$.message").isEqualTo("Type mismatch.");
 //
 //	}
@@ -80,7 +132,7 @@ public class BookThemeNightServiceApplicationTests {
 	@Test
 	public void getBookThemeNightNotFound() {
 
-		getAndVerifyBookThemeNightsByBookId("?bookId=113", OK).jsonPath("$.length()").isEqualTo(0);
+		getAndVerifyBookThemeNightByBookId("?bookId=113", OK).jsonPath("$.length()").isEqualTo(0);
 
 	}
 
@@ -89,29 +141,35 @@ public class BookThemeNightServiceApplicationTests {
 
 		int bookIdInvalid = -1;
 
-		getAndVerifyBookThemeNightsByBookId("?bookId=" + bookIdInvalid,
+		getAndVerifyBookThemeNightByBookId("?bookId=" + bookIdInvalid,
 				UNPROCESSABLE_ENTITY).jsonPath("$.path").isEqualTo("/book-theme-night").jsonPath("$.message")
 						.isEqualTo("Invalid bookId: " + bookIdInvalid);
 
 	}
 
-	private WebTestClient.BodyContentSpec getAndVerifyBookThemeNightsByBookId(String bookIdQuery,
-			HttpStatus expectedStatus) {
-		return client.get().uri("/book-theme-night" + bookIdQuery).accept(APPLICATION_JSON).exchange()
-				.expectStatus().isEqualTo(expectedStatus).expectHeader().contentType(APPLICATION_JSON).expectBody();
+	private WebTestClient.BodyContentSpec getAndVerifyBookThemeNightByBookId(int bookId, HttpStatus expectedStatus) {
+		return getAndVerifyBookThemeNightByBookId("?bookId=" + bookId, expectedStatus);
 	}
 
-	private WebTestClient.BodyContentSpec postAndVerifyBookThemeNight(int bookId, int bookThemeNightId,
-			HttpStatus expectedStatus) {
-		BookThemeNight bookThemeNight = new BookThemeNight(bookId, bookThemeNightId, "name 1", new Date(), "location 1", "SA");
-		return client.post().uri("/book-theme-night").body(just(bookThemeNight), BookThemeNight.class).accept(APPLICATION_JSON).exchange()
-				.expectStatus().isEqualTo(expectedStatus).expectHeader().contentType(APPLICATION_JSON).expectBody();
+	private WebTestClient.BodyContentSpec getAndVerifyBookThemeNightByBookId(String bookIdQuery, HttpStatus expectedStatus) {
+		return client.get()
+			.uri("/book-theme-night" + bookIdQuery)
+			.accept(APPLICATION_JSON)
+			.exchange()
+			.expectStatus().isEqualTo(expectedStatus)
+			.expectHeader().contentType(APPLICATION_JSON)
+			.expectBody();
+	}
+	
+	private void sendCreateBookThemeNightEvent(int bookId, int bookThemeNightId) {
+		BookThemeNight bookThemeNight = new BookThemeNight(bookId, bookThemeNightId, "Name " + bookThemeNightId, new Date(), "Location " + bookThemeNightId, "SA");
+		Event<Integer, BookModel> event = new Event(CREATE, bookId, bookThemeNight);
+		input.send(new GenericMessage<>(event));
 	}
 
-	private WebTestClient.BodyContentSpec deleteAndVerifyBookThemeNightByBookId(int bookId,
-			HttpStatus expectedStatus) {
-		return client.delete().uri("/book-theme-night?bookId=" + bookId).accept(APPLICATION_JSON)
-				.exchange().expectStatus().isEqualTo(expectedStatus).expectBody();
+	private void sendDeleteBookThemeNightEvent(int bookId) {
+		Event<Integer, BookModel> event = new Event(DELETE, bookId, null);
+		input.send(new GenericMessage<>(event));
 	}
 
 }

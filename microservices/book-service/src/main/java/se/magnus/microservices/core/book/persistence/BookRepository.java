@@ -1,10 +1,9 @@
 package se.magnus.microservices.core.book.persistence;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Mono;
 
-import java.util.Optional;
+public interface BookRepository extends ReactiveCrudRepository<BookEntity, String>{
 
-public interface BookRepository extends PagingAndSortingRepository<BookEntity, String>{
-
-	Optional<BookEntity> findByBookId(int bookId);
+	Mono<BookEntity> findByBookId(int bookId);
 }

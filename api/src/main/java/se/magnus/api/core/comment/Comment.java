@@ -1,10 +1,10 @@
 package se.magnus.api.core.comment;
 
 public class Comment {
-    private final int bookId;
-    private final int commentId;
-    private final String author;
-    private final String content;
+    private int bookId;
+    private int commentId;
+    private String author;
+    private String content;
     private String serviceAddress;
 
     public Comment() {
@@ -46,4 +46,22 @@ public class Comment {
 	public void setServiceAddress(String serviceAddress) {
 		this.serviceAddress = serviceAddress;
 	}
+
+	public void setBookId(int bookId) {
+		this.bookId = bookId;
+	}
+
+	public void setCommentId(int commentId) {
+		this.commentId = commentId;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+	
+	
 }

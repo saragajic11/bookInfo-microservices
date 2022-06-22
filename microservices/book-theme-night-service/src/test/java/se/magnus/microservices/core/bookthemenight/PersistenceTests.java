@@ -27,10 +27,10 @@ public class PersistenceTests {
 	
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+		repository.deleteAll().block();
 
 		BookThemeNightEntity entity = new BookThemeNightEntity(1, 1, "name1", new Date(), "location1");
-		savedBookThemeNightEntity = repository.save(entity);
+		savedBookThemeNightEntity = repository.save(entity).block();
 
 		assertEqualsBookThemeNight(entity, savedBookThemeNightEntity);
 	}
@@ -39,33 +39,33 @@ public class PersistenceTests {
 	public void createBookThemeNight() {
 
 		BookThemeNightEntity newEntity = new BookThemeNightEntity(1, 2, "name2", new Date(), "location2");
-		repository.save(newEntity);
+		repository.save(newEntity).block();
 
-		BookThemeNightEntity foundEntity = repository.findById(newEntity.getId()).get();
+		BookThemeNightEntity foundEntity = repository.findById(newEntity.getId()).block();
 		assertEqualsBookThemeNight(newEntity, foundEntity);
 
-		assertEquals(2, repository.count());
+		assertEquals(2, (long)repository.count().block());
 	}
 	
 	@Test
 	public void updateBookThemeNight() {
 		savedBookThemeNightEntity.setName("name2");
-		repository.save(savedBookThemeNightEntity);
+		repository.save(savedBookThemeNightEntity).block();
 
-		BookThemeNightEntity foundEntity = repository.findById(savedBookThemeNightEntity.getId()).get();
+		BookThemeNightEntity foundEntity = repository.findById(savedBookThemeNightEntity.getId()).block();
 		assertEquals(1, (long) foundEntity.getVersion());
 		assertEquals("name2", foundEntity.getName());
 	}
 
 	@Test
 	public void deleteBookThemeNight() {
-		repository.delete(savedBookThemeNightEntity);
-		assertFalse(repository.existsById(savedBookThemeNightEntity.getId()));
+		repository.delete(savedBookThemeNightEntity).block();
+		assertFalse(repository.existsById(savedBookThemeNightEntity.getId()).block());
 	}
 	
 	@Test
 	public void getByBookId() {
-		List<BookThemeNightEntity> entityList = repository.findByBookId(savedBookThemeNightEntity.getBookId());
+		List<BookThemeNightEntity> entityList = repository.findByBookId(savedBookThemeNightEntity.getBookId()).collectList().block();
 
         assertEquals(entityList.size(), 1);
         assertEqualsBookThemeNight(savedBookThemeNightEntity, entityList.get(0));
@@ -79,20 +79,20 @@ public class PersistenceTests {
 	
 	public void optimisticLockError() {
 
-		BookThemeNightEntity entity1 = repository.findById(savedBookThemeNightEntity.getId()).get();
-		BookThemeNightEntity entity2 = repository.findById(savedBookThemeNightEntity.getId()).get();
+		BookThemeNightEntity entity1 = repository.findById(savedBookThemeNightEntity.getId()).block();
+		BookThemeNightEntity entity2 = repository.findById(savedBookThemeNightEntity.getId()).block();
 
 		entity1.setName("name2");
-		repository.save(entity1);
+		repository.save(entity1).block();
 
 		try {
 			entity2.setName("name3");
-			repository.save(entity2);
+			repository.save(entity2).block();
 
 			fail("Expected an OptimisticLockingFailureException");
 		} catch (OptimisticLockingFailureException e) {
 		}
-		BookThemeNightEntity updatedEntity = repository.findById(savedBookThemeNightEntity.getId()).get();
+		BookThemeNightEntity updatedEntity = repository.findById(savedBookThemeNightEntity.getId()).block();
 		assertEquals(1, (int) updatedEntity.getVersion());
 		assertEquals("name2", updatedEntity.getName());
 	}

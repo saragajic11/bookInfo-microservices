@@ -2,6 +2,8 @@ package se.magnus.microservices.core.book.persistence;
 
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -23,8 +25,9 @@ public class BookEntity {
     private Date releaseDate;
     public String language;
     
+	private static final Logger LOG = LoggerFactory.getLogger(BookEntity.class);
+    
     public BookEntity() {
-    	
     }
     
     public BookEntity(int bookId, String name, Date releaseDate, String language) {

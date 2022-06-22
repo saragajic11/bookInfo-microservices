@@ -1,10 +1,9 @@
 package se.magnus.microservices.core.bookthemenight.persistence;
 
-import java.util.List;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Flux;
 
-import org.springframework.data.repository.CrudRepository;
-
-public interface BookThemeNightRepository extends CrudRepository<BookThemeNightEntity, String> {
-	List<BookThemeNightEntity> findByBookId(int bookId);
+public interface BookThemeNightRepository extends ReactiveCrudRepository<BookThemeNightEntity, String> {
+	Flux<BookThemeNightEntity> findByBookId(int bookId);
 
 }

@@ -26,10 +26,10 @@ public class PersistenceTests {
 
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+		repository.deleteAll().block();
 
 		CommentEntity entity = new CommentEntity(1, 1, "author1", "content1");
-		savedCommentEntity = repository.save(entity);
+		savedCommentEntity = repository.save(entity).block();
 
 		assertEqualsComment(entity, savedCommentEntity);
 	}
@@ -38,33 +38,33 @@ public class PersistenceTests {
 	public void createComment() {
 
 		CommentEntity newEntity = new CommentEntity(1, 2, "author2", "content2");
-		repository.save(newEntity);
+		repository.save(newEntity).block();
 
-		CommentEntity foundEntity = repository.findById(newEntity.getId()).get();
+		CommentEntity foundEntity = repository.findById(newEntity.getId()).block();
 		assertEqualsComment(newEntity, foundEntity);
 
-		assertEquals(2, repository.count());
+		assertEquals(2, (long)repository.count().block());
 	}
 
 	@Test
 	public void updateComment() {
 		savedCommentEntity.setAuthor("author2");
-		repository.save(savedCommentEntity);
+		repository.save(savedCommentEntity).block();
 
-		CommentEntity foundEntity = repository.findById(savedCommentEntity.getId()).get();
+		CommentEntity foundEntity = repository.findById(savedCommentEntity.getId()).block();
 		assertEquals(1, (long) foundEntity.getVersion());
 		assertEquals("author2", foundEntity.getAuthor());
 	}
 	
 	@Test
 	public void deleteComment() {
-		repository.delete(savedCommentEntity);
-		assertFalse(repository.existsById(savedCommentEntity.getId()));
+		repository.delete(savedCommentEntity).block();
+		assertFalse(repository.existsById(savedCommentEntity.getId()).block());
 	}
 
 	@Test
 	public void getByBookId() {
-		List<CommentEntity> entityList = repository.findByBookId(savedCommentEntity.getBookId());
+		List<CommentEntity> entityList = repository.findByBookId(savedCommentEntity.getBookId()).collectList().block();
 
         assertThat(entityList, hasSize(1));
         assertEqualsComment(savedCommentEntity, entityList.get(0));
@@ -79,20 +79,20 @@ public class PersistenceTests {
 	@Test
 	public void optimisticLockError() {
 
-		CommentEntity entity1 = repository.findById(savedCommentEntity.getId()).get();
-		CommentEntity entity2 = repository.findById(savedCommentEntity.getId()).get();
+		CommentEntity entity1 = repository.findById(savedCommentEntity.getId()).block();
+		CommentEntity entity2 = repository.findById(savedCommentEntity.getId()).block();
 
 		entity1.setAuthor("author2");
-		repository.save(entity1);
+		repository.save(entity1).block();
 
 		try {
 			entity2.setAuthor("author3");
-			repository.save(entity2);
+			repository.save(entity2).block();
 
 			fail("Expected an OptimisticLockingFailureException");
 		} catch (OptimisticLockingFailureException e) {
 		}
-		CommentEntity updatedEntity = repository.findById(savedCommentEntity.getId()).get();
+		CommentEntity updatedEntity = repository.findById(savedCommentEntity.getId()).block();
 		assertEquals(1, (int) updatedEntity.getVersion());
 		assertEquals("author2", updatedEntity.getAuthor());
 	}

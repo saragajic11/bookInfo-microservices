@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import reactor.core.publisher.Mono;
 
 
 public interface BookService {
@@ -19,13 +20,13 @@ public interface BookService {
     @GetMapping(
         value    = "/book/{bookId}",
         produces = "application/json")
-     BookModel getBook(@PathVariable int bookId);
+     Mono<BookModel> getBook(@PathVariable int bookId);
     
 	@PostMapping(
 	        value    = "/book",
 	        consumes = "application/json",
 	        produces = "application/json")
-	    BookModel createBook(@RequestBody BookModel body);
+	 BookModel createBook(@RequestBody BookModel body);
 	
 	@DeleteMapping(value = "/book/{bookId}")
     void deleteBook(@PathVariable int bookId);

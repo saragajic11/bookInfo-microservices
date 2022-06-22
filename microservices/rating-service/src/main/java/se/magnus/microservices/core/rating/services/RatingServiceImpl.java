@@ -13,6 +13,11 @@ import se.magnus.util.exceptions.*;
 import se.magnus.microservices.core.rating.persistence.*;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.publisher.Flux;
+import java.util.function.Supplier;
+import org.reactivestreams.Publisher;
+import static java.util.logging.Level.FINE;
 
 @RestController
 public class RatingServiceImpl implements RatingService {
@@ -21,41 +26,49 @@ public class RatingServiceImpl implements RatingService {
     private static final Logger LOG = LoggerFactory.getLogger(RatingServiceImpl.class);
     private RatingRepository repository;
     private RatingMapper mapper;
+    private final Scheduler scheduler;
 	
 	@Autowired
-	public RatingServiceImpl(ServiceUtil serviceUtil, RatingRepository repository, RatingMapper mapper) {
+	public RatingServiceImpl(Scheduler scheduler, ServiceUtil serviceUtil, RatingRepository repository, RatingMapper mapper) {
+		this.scheduler = scheduler;
 		this.serviceUtil = serviceUtil;
 		this.repository = repository;
 		this.mapper = mapper;
 	}
 	
 	@Override
-	public List<Rating> getRatings(int bookId) {
-		if (bookId < 1)
-			throw new InvalidInputException("Invalid bookId: " + bookId);
+	public Flux<Rating> getRatings(int bookId) {
+        if (bookId < 1) throw new InvalidInputException("Invalid bookId: " + bookId);
 
-		List<RatingEntity> entityList = repository.findByBookId(bookId);
-		List<Rating> list = mapper.entityListToApiList(entityList);
-		list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
+        LOG.info("Will get raatings for book with id={}", bookId);
 
-		LOG.debug("getRating: response size: {}", list.size());
-
-		return list;
+        return asyncFlux(() -> Flux.fromIterable(getByBookId(bookId))).log(null, FINE);
 	}
+	
+	protected List<Rating> getByBookId(int bookId) {
+
+        List<RatingEntity> entityList = repository.findByBookId(bookId);
+        List<Rating> list = mapper.entityListToApiList(entityList);
+        list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
+
+        LOG.debug("getRatings: response size: {}", list.size());
+
+        return list;
+    }
+
 	
 	@Override
 	public Rating createRating(Rating body) {
-		try {
-			RatingEntity entity = mapper.apiToEntity(body);
-			RatingEntity newEntity = repository.save(entity);
+		if (body.getBookId() < 1) throw new InvalidInputException("Invalid bookId: " + body.getBookId());
 
-			LOG.debug("createRating: created a rating entity: {}/{}", body.getBookId(),
-					body.getRatingId());
-			return mapper.entityToApi(newEntity);
+        try {
+            RatingEntity entity = mapper.apiToEntity(body);
+            RatingEntity newEntity = repository.save(entity);
 
-		} catch (DataIntegrityViolationException dive) {
-			throw new InvalidInputException("Duplicate key, book Id: " + body.getBookId() + ", Rating Id:"
-					+ body.getRatingId());
+            return mapper.entityToApi(newEntity);
+
+        } catch (DataIntegrityViolationException dive) {
+            throw new InvalidInputException("Duplicate key, book Id: " + body.getBookId() + ", Rating Id:" + body.getRatingId());
         }
 	}
 	
@@ -65,5 +78,9 @@ public class RatingServiceImpl implements RatingService {
 				bookId);
 		repository.deleteAll(repository.findByBookId(bookId));
 	}
+	
+	private <T> Flux<T> asyncFlux(Supplier<Publisher<T>> publisherSupplier) {
+        return Flux.defer(publisherSupplier).subscribeOn(scheduler);
+    }
 	
 }

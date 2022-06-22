@@ -27,6 +27,9 @@ import se.magnus.microservices.composite.book.services.*;
 import se.magnus.util.exceptions.*;
 import java.util.Date;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 @SpringBootTest(webEnvironment=RANDOM_PORT)
 @RunWith(SpringRunner.class)
 public class BookCompositeServiceApplicationTests {
@@ -44,15 +47,18 @@ public class BookCompositeServiceApplicationTests {
 	
 	@Before
 	public void setUp() {
-
+		
 		when(compositeIntegration.getBook(BOOK_ID_OK)).
-			thenReturn(new BookModel(BOOK_ID_OK, "Test Name", new Date(), "Test language", "mock-address"));
+		thenReturn(Mono.just(new BookModel(BOOK_ID_OK, "Test Name", new Date(), "Test language", "mock-address")));
+
 		when(compositeIntegration.getComments(BOOK_ID_OK)).
-			thenReturn(singletonList(new Comment(BOOK_ID_OK, 1,"Test author", "Test content", "mock address")));
+		thenReturn(Flux.fromIterable(singletonList(new Comment(BOOK_ID_OK, 1,"Test author", "Test content", "mock address"))));
+
 		when(compositeIntegration.getRatings(BOOK_ID_OK)).
-			thenReturn(singletonList(new Rating(BOOK_ID_OK, 1, "Test author", 10, "mock address")));
+		thenReturn(Flux.fromIterable(singletonList(new Rating(BOOK_ID_OK, 1, "Test author", 10, "mock address"))));
+		
 		when(compositeIntegration.getBookThemeNights(BOOK_ID_OK)).
-			thenReturn(singletonList(new BookThemeNight(BOOK_ID_OK, 1, "Test name",new Date(), "Test location", "mock address")));
+		thenReturn(Flux.fromIterable(singletonList(new BookThemeNight(BOOK_ID_OK, 1, "Test name",new Date(), "Test location", "mock address"))));
 
 		when(compositeIntegration.getBook(BOOK_ID_NOT_FOUND)).thenThrow(new NotFoundException("NOT FOUND: " + BOOK_ID_NOT_FOUND));
 

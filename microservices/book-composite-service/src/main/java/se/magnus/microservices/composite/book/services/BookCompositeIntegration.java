@@ -24,246 +24,209 @@ import se.magnus.util.http.ServiceUtil;
 import se.magnus.util.http.*;
 import se.magnus.util.exceptions.*;
 
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
+import static reactor.core.publisher.Flux.empty;
+import se.magnus.util.http.HttpErrorInfo;
+import org.springframework.messaging.MessageChannel;
+import se.magnus.api.event.Event;
+import static se.magnus.api.event.Event.Type.CREATE;
+import static se.magnus.api.event.Event.Type.DELETE;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+
+@EnableBinding(BookCompositeIntegration.MessageSources.class)
 @Component
 public class BookCompositeIntegration implements BookService, BookThemeNightService, CommentService, RatingService {
 	
-	private final RestTemplate restTemplate;
 	private final ObjectMapper mapper;
 	
 	private final String bookServiceUrl;
 	private final String bookThemeNightServiceUrl;
 	private final String commentServiceUrl;
 	private final String ratingServiceUrl;
+    private final WebClient webClient;
+    private MessageSources messageSources;
+    
+    public interface MessageSources {
+
+        String OUTPUT_BOOKS = "output-books";
+        String OUTPUT_COMMENTS = "output-comments";
+        String OUTPUT_BOOK_THEME_NIGHTS = "output-book-theme-nights";
+        String OUTPUT_RATINGS = "output-ratings";
+
+        @Output(OUTPUT_BOOKS)
+        MessageChannel outputBooks();
+
+        @Output(OUTPUT_COMMENTS)
+        MessageChannel outputComments();
+
+        @Output(OUTPUT_BOOK_THEME_NIGHTS)
+        MessageChannel outputBookThemeNights();
+        
+        @Output(OUTPUT_RATINGS)
+        MessageChannel outputRatings();
+    }
 	
 
 	private static final Logger LOG = LoggerFactory.getLogger(BookCompositeIntegration.class);
 	
 	@Autowired
-	public BookCompositeIntegration(RestTemplate restTemplate, ObjectMapper mapper, @Value("${app.book-service.host}") String bookServiceHost,  @Value("${app.book-service.port}") int bookServicePort, @Value("${app.book-theme-night-service.host}") String bookThemeNightServiceHost,  @Value("${app.book-theme-night-service.port}") int bookThemeNightServicePort, @Value("${app.comment-service.host}") String commentServiceHost,  @Value("${app.comment-service.port}") int commentServicePort, @Value("${app.rating-service.host}") String ratingServiceHost,  @Value("${app.rating-service.port}") int ratingServicePort) {
-		this.restTemplate = restTemplate;
+	public BookCompositeIntegration(WebClient.Builder webClient, ObjectMapper mapper, MessageSources messageSources, @Value("${app.book-service.host}") String bookServiceHost,  @Value("${app.book-service.port}") int bookServicePort, @Value("${app.book-theme-night-service.host}") String bookThemeNightServiceHost,  @Value("${app.book-theme-night-service.port}") int bookThemeNightServicePort, @Value("${app.comment-service.host}") String commentServiceHost,  @Value("${app.comment-service.port}") int commentServicePort, @Value("${app.rating-service.host}") String ratingServiceHost,  @Value("${app.rating-service.port}") int ratingServicePort) {
 		this.mapper = mapper;
 		
-		bookServiceUrl = "http://" + bookServiceHost + ":" +   bookServicePort + "/book/";
-		bookThemeNightServiceUrl = "http://" + bookThemeNightServiceHost  + ":" + bookThemeNightServicePort + "/book-theme-night?bookId=";
-		commentServiceUrl = "http://" + commentServiceHost +   ":" + commentServicePort + "/comment?bookId=";
-		ratingServiceUrl = "http://" + ratingServiceHost +   ":" + ratingServicePort + "/rating?bookId=";
+		bookServiceUrl = "http://" + bookServiceHost + ":" +   bookServicePort;
+		bookThemeNightServiceUrl = "http://" + bookThemeNightServiceHost  + ":" + bookThemeNightServicePort;
+		commentServiceUrl = "http://" + commentServiceHost +   ":" + commentServicePort;
+		ratingServiceUrl = "http://" + ratingServiceHost +   ":" + ratingServicePort;
+		
+		this.webClient = webClient.build();
+		this.messageSources = messageSources;
 	}
 	
 	@Override
-	public BookModel getBook(int bookId) {
-        try {
-            String url = bookServiceUrl + "/" + bookId;
-            LOG.debug("Will call the getBook API by URL: {}", url);
+	public Mono<BookModel> getBook(int bookId) {
+		String url = bookServiceUrl + "/book/" + bookId;
+        LOG.debug("Will call the getBook API on URL: {}", url);
 
-            BookModel book = restTemplate.getForObject(url, BookModel.class);
-            LOG.debug("Found a book with id: {}", book.getBookId());
-
-            return book;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        return webClient.get().uri(url).retrieve().bodyToMono(BookModel.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
 	}
 	
 	@Override
 	public BookModel createBook(BookModel body) {
-
-		try {
-			String url = bookServiceUrl;
-			LOG.debug("Will post a new book to URL: {}", url);
-
-			BookModel book = restTemplate.postForObject(url, body, BookModel.class);
-			LOG.debug("Created a book with id: {}", book.getBookId());
-
-			return book;
-
-		} catch (HttpClientErrorException ex) {
-			throw handleHttpClientException(ex);
-		}
+	       messageSources.outputBooks().send(MessageBuilder.withPayload(new Event(CREATE, body.getBookId(), body)).build());
+	        return body;
 	}
 	
 	@Override
 	public void deleteBook(int bookId) {
-		try {
-			String url = bookServiceUrl + "?bookId=" + bookId;
-			LOG.debug("Will call the deleteBook API on URL: {}", url);
-
-			restTemplate.delete(url);
-
-		} catch (HttpClientErrorException ex) {
-			throw handleHttpClientException(ex);
-		}
+        messageSources.outputBooks().send(MessageBuilder.withPayload(new Event(DELETE, bookId, null)).build());
 	}
 	
 	@Override
     public BookThemeNight createBookThemeNight(BookThemeNight body) {
-
-        try {
-            String url = bookThemeNightServiceUrl;
-            LOG.debug("Will post a new bookThemeNight to URL: {}", url);
-
-            BookThemeNight bookThemeNight = restTemplate.postForObject(url, body, BookThemeNight.class);
-            LOG.debug("Created a book theme night with id: {}", bookThemeNight.getBookId());
-
-            return bookThemeNight;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputBookThemeNights().send(MessageBuilder.withPayload(new Event(CREATE, body.getBookId(), body)).build());
+        return body;
     }
 	
 	@Override
-    public List<BookThemeNight> getBookThemeNights(int bookId) {
+    public Flux<BookThemeNight> getBookThemeNights(int bookId) {
+        String url = bookThemeNightServiceUrl + "/book-theme-night?bookId=" + bookId;
 
-        try {
-            String url = bookThemeNightServiceUrl + "?bookId=" + bookId;
+        LOG.debug("Will call the getBookThemeNights API on URL: {}", url);
 
-            LOG.debug("Will call the getBookThemeNights API on URL: {}", url);
-            List<BookThemeNight> bookThemeNights = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<BookThemeNight>>() {}).getBody();
-
-            LOG.debug("Found {} bookThemeNights for a book with id: {}", bookThemeNights.size(), bookId);
-            return bookThemeNights;
-
-        } catch (Exception ex) {
-            LOG.warn("Got an exception while requesting bookThemeNights, return zero bookThemeNights: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return webClient.get().uri(url).retrieve().bodyToFlux(BookThemeNight.class).log().onErrorResume(error -> empty());
     }
 
     @Override
     public void deleteBookThemeNight(int bookId) {
-        try {
-            String url = bookThemeNightServiceUrl + "?bookId=" + bookId;
-            LOG.debug("Will call the deleteBookThemeNights API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputBookThemeNights().send(MessageBuilder.withPayload(new Event(DELETE, bookId, null)).build());
     }
     
-	
 	@Override
     public Comment createComment(Comment body) {
-
-        try {
-            String url = commentServiceUrl;
-            LOG.debug("Will post a new comment to URL: {}", url);
-
-            Comment comment = restTemplate.postForObject(url, body, Comment.class);
-            LOG.debug("Created a comment with id: {}", comment.getBookId());
-
-            return comment;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputComments().send(MessageBuilder.withPayload(new Event(CREATE, body.getBookId(), body)).build());
+        return body;
     }
 	
 	@Override
-    public List<Comment> getComments(int bookId) {
+    public Flux<Comment> getComments(int bookId) {
 
-        try {
-            String url = commentServiceUrl + "?bookId=" + bookId;
+        String url = commentServiceUrl + "/comment?bookId=" + bookId;
 
-            LOG.debug("Will call the getComments API on URL: {}", url);
-            List<Comment> comments = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Comment>>() {}).getBody();
+        LOG.debug("Will call the getComments API on URL: {}", url);
 
-            LOG.debug("Found {} bookThemeNights for a book with id: {}", comments.size(), bookId);
-            return comments;
-
-        } catch (Exception ex) {
-            LOG.warn("Got an exception while requesting bookThemeNights, return zero bookThemeNights: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return webClient.get().uri(url).retrieve().bodyToFlux(Comment.class).log().onErrorResume(error -> empty());
     }
 
     @Override
     public void deleteComment(int bookId) {
-        try {
-            String url = commentServiceUrl + "?bookId=" + bookId;
-            LOG.debug("Will call the deleteComment API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputComments().send(MessageBuilder.withPayload(new Event(DELETE, bookId, null)).build());
     }
     
 	@Override
     public Rating createRating(Rating body) {
-
-        try {
-            String url = ratingServiceUrl;
-            LOG.debug("Will post a new comment to URL: {}", url);
-
-            Rating rating = restTemplate.postForObject(url, body, Rating.class);
-            LOG.debug("Created a rating with id: {}", rating.getBookId());
-
-            return rating;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(CREATE, body.getBookId(), body)).build());
+        return body;
     }
 	
 	@Override
-    public List<Rating> getRatings(int bookId) {
+    public Flux<Rating> getRatings(int bookId) {
+        String url = ratingServiceUrl + "/rating?bookId=" + bookId;
 
-        try {
-            String url = ratingServiceUrl + "?bookId=" + bookId;
+        LOG.debug("Will call the getRatings API on URL: {}", url);
 
-            LOG.debug("Will call the getRatings API on URL: {}", url);
-            List<Rating> ratings = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Rating>>() {}).getBody();
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return webClient.get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
 
-            LOG.debug("Found {} ratings for a book with id: {}", ratings.size(), bookId);
-            return ratings;
-
-        } catch (Exception ex) {
-            LOG.warn("Got an exception while requesting ratings, return zero ratings: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
     }
 
     @Override
     public void deleteRating(int bookId) {
-        try {
-            String url = ratingServiceUrl + "?bookId=" + bookId;
-            LOG.debug("Will call the deleteRating API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRatings().send(MessageBuilder.withPayload(new Event(DELETE, bookId, null)).build());
     }
 	
-	private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
-        switch (ex.getStatusCode()) {
+    private String getErrorMessage(WebClientResponseException ex) {
+        try {
+            return mapper.readValue(ex.getResponseBodyAsString(), HttpErrorInfo.class).getMessage();
+        } catch (IOException ioex) {
+            return ex.getMessage();
+        }
+    }
+    
+    public Mono<Health> getBookHealth() {
+        return getHealth(bookServiceUrl);
+    }
+
+    public Mono<Health> getCommentHealth() {
+        return getHealth(commentServiceUrl);
+    }
+    
+    public Mono<Health> getBookThemeNightHealth() {
+        return getHealth(bookThemeNightServiceUrl);
+    }
+
+    public Mono<Health> getRatingHealth() {
+        return getHealth(ratingServiceUrl);
+    }
+
+    private Mono<Health> getHealth(String url) {
+        url += "/actuator/health";
+        LOG.debug("Will call the Health API on URL: {}", url);
+        return webClient.get().uri(url).retrieve().bodyToMono(String.class)
+            .map(s -> new Health.Builder().up().build())
+            .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
+            .log();
+    }
+	
+	private Throwable handleException(Throwable ex) {
+
+        if (!(ex instanceof WebClientResponseException)) {
+            LOG.warn("Got a unexpected error: {}, will rethrow it", ex.toString());
+            return ex;
+        }
+
+        WebClientResponseException wcre = (WebClientResponseException)ex;
+
+        switch (wcre.getStatusCode()) {
 
         case NOT_FOUND:
-            return new NotFoundException(getErrorMessage(ex));
+            return new NotFoundException(getErrorMessage(wcre));
 
         case UNPROCESSABLE_ENTITY :
-            return new InvalidInputException(getErrorMessage(ex));
+            return new InvalidInputException(getErrorMessage(wcre));
 
         default:
-            LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", ex.getStatusCode());
-            LOG.warn("Error body: {}", ex.getResponseBodyAsString());
+            LOG.warn("Got a unexpected HTTP error: {}, will rethrow it", wcre.getStatusCode());
+            LOG.warn("Error body: {}", wcre.getResponseBodyAsString());
             return ex;
         }
     }
-
-	
-	private String getErrorMessage(HttpClientErrorException ex) {
-		try {
-			return mapper.readValue(ex.getResponseBodyAsString(), HttpErrorInfo.class).getMessage();
-		} catch (IOException ioex) {
-			return ex.getMessage();
-		}
-	}
-	
 	
 }

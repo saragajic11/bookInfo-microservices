@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import reactor.core.publisher.Flux;
+
 import java.util.List;
 
 public interface BookThemeNightService {
@@ -20,7 +22,7 @@ public interface BookThemeNightService {
     @GetMapping(
         value    = "/book-theme-night",
         produces = "application/json")
-    List<BookThemeNight> getBookThemeNights(@RequestParam(value = "bookId", required = true) int bookId);
+    Flux<BookThemeNight> getBookThemeNights(@RequestParam(value = "bookId", required = true) int bookId);
     
 	@PostMapping(
 	        value    = "/book-theme-night",

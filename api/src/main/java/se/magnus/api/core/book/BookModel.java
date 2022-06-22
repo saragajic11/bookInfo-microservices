@@ -3,10 +3,10 @@ package se.magnus.api.core.book;
 import java.util.Date;
 
 public class BookModel {
-    private final int bookId;
-    private final String name;
-    private final Date releaseDate;
-    public final String language;
+    private int bookId;
+    private String name;
+    private Date releaseDate;
+    public String language;
     private String serviceAddress;
 
     public BookModel() {
@@ -47,6 +47,22 @@ public class BookModel {
 
 	public void setServiceAddress(String serviceAddress) {
 		this.serviceAddress = serviceAddress;
+	}
+
+	public void setBookId(int bookId) {
+		this.bookId = bookId;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setReleaseDate(Date releaseDate) {
+		this.releaseDate = releaseDate;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
 	}
     
     

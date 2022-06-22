@@ -17,9 +17,34 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import org.springframework.boot.actuate.health.*;
+import se.magnus.microservices.composite.book.services.*;
+import java.util.LinkedHashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 @SpringBootApplication
 @ComponentScan("se.magnus")
 public class BookCompositeServiceApplication {
+	
+	@Autowired
+	HealthAggregator healthAggregator;
+
+	@Autowired
+	BookCompositeIntegration integration;
+
+	@Bean
+	ReactiveHealthIndicator coreServices() {
+
+		ReactiveHealthIndicatorRegistry registry = new DefaultReactiveHealthIndicatorRegistry(new LinkedHashMap<>());
+
+		registry.register("book", () -> integration.getBookHealth());
+		registry.register("comment", () -> integration.getCommentHealth());
+		registry.register("bookThemeNight", () -> integration.getBookThemeNightHealth());
+		registry.register("rating", () -> integration.getRatingHealth());
+
+		return new CompositeReactiveHealthIndicator(healthAggregator, registry);
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(BookCompositeServiceApplication.class, args);

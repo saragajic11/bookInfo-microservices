@@ -10,8 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 import se.magnus.util.http.ServiceUtil;
 import se.magnus.util.exceptions.*;
 import se.magnus.api.core.comment.*;
+import se.magnus.util.exceptions.*;
 import se.magnus.microservices.core.comment.persistence.*;
 import org.springframework.dao.DuplicateKeyException;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 public class CommentServiceImpl implements CommentService {
@@ -29,39 +33,36 @@ public class CommentServiceImpl implements CommentService {
 	}
 	
 	@Override
-	public List<Comment> getComments(int bookId) {
+	public Flux<Comment> getComments(int bookId) {
 		if (bookId < 1)
 			throw new InvalidInputException("Invalid bookId: " + bookId);
-
-		List<CommentEntity> entityList = repository.findByBookId(bookId);
-		List<Comment> list = mapper.entityListToApiList(entityList);
-		list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
-
-		LOG.debug("getComments: response size: {}", list.size());
-
-		return list;
+		
+		return repository.findByBookId(bookId)
+				.log()
+				.map(e -> mapper.entityToApi(e))
+				.map(e -> {e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
 	}
 	
 	@Override
 	public Comment createComment(Comment body) {
-		try {
-			CommentEntity entity = mapper.apiToEntity(body);
-			CommentEntity newEntity = repository.save(entity);
-			LOG.debug("createComment: created a comment entity: {}/{}", body.getBookId(),
-						body.getCommentId());
-			return mapper.entityToApi(newEntity);
-
-			} catch (DuplicateKeyException dke) {
-				throw new InvalidInputException("Duplicate key, BookId Id: " + body.getBookId() + ", Comment Id:"
-						+ body.getCommentId());
-			}
-		}
+		if (body.getCommentId() < 1) throw new InvalidInputException("Invalid commentId: " + body.getCommentId());
+		CommentEntity entity = mapper.apiToEntity(body);
+        Mono<Comment> newEntity = repository.save(entity)
+            .log()
+            .onErrorMap(
+                DuplicateKeyException.class,
+                ex -> new InvalidInputException("Duplicate key,book Id: " + body.getBookId() + ", Comment Id:" + body.getCommentId()))
+            .map(e -> mapper.entityToApi(e));
+        return newEntity.block();
+	}
 	
 
 	@Override
 	public void deleteComment(int bookId) {
-		LOG.debug("deleteComments: tries to delete comments for the book with bookId: {}",
-				bookId);
-		repository.deleteAll(repository.findByBookId(bookId));
+		if (bookId < 1)
+			throw new InvalidInputException("Invalid bookId: " + bookId);
+
+        LOG.debug("deleteComment: tries to delete comments for the book with bookId: {}", bookId);
+        repository.deleteAll(repository.findByBookId(bookId)).block();  
 	}
 }

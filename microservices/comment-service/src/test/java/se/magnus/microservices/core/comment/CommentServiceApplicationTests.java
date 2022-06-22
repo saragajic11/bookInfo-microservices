@@ -5,7 +5,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -17,6 +19,15 @@ import static reactor.core.publisher.Mono.just;
 
 import se.magnus.microservices.core.comment.persistence.*;
 import se.magnus.api.core.comment.*;
+import se.magnus.api.core.book.*;
+
+import org.springframework.messaging.MessagingException;
+import se.magnus.util.exceptions.*;
+import se.magnus.api.event.Event;
+import org.springframework.messaging.support.GenericMessage;
+
+import static se.magnus.api.event.Event.Type.CREATE;
+import static se.magnus.api.event.Event.Type.DELETE;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.data.mongodb.port: 0" })
 @RunWith(SpringRunner.class)
@@ -27,10 +38,16 @@ public class CommentServiceApplicationTests {
 	
 	@Autowired
 	private CommentRepository repository;
+	
+	@Autowired
+	private Sink channels;
+
+	private AbstractMessageChannel input = null;
 
 	@Before
 	public void setupDb() {
-		repository.deleteAll();
+		input = (AbstractMessageChannel) channels.input();
+		repository.deleteAll().block();
 	}
 
 	@Test
@@ -38,12 +55,42 @@ public class CommentServiceApplicationTests {
 
 		int bookId = 1;
 
-		postAndVerifyComment(bookId, 1, OK);
-		postAndVerifyComment(bookId, 2, OK);
-		postAndVerifyComment(bookId, 3, OK);
+		sendCreateCommentEvent(bookId, 1);
+		sendCreateCommentEvent(bookId, 2);
+		sendCreateCommentEvent(bookId, 3);
 
-		assertEquals(3, repository.findByBookId(bookId).size());
+		assertEquals(3, (long)repository.findByBookId(bookId).count().block());
+
+		getAndVerifyCommentByBookId(bookId, OK)
+			.jsonPath("$.length()").isEqualTo(3)
+			.jsonPath("$[2].bookId").isEqualTo(bookId)
+			.jsonPath("$[2].commentId").isEqualTo(3);
 	}
+	
+//	@Test
+//	public void duplicateError() {
+//
+//		int bookId = 1;
+//		int commentId = 1;
+//
+//		sendCreateCommentEvent(bookId, commentId);
+//
+//		assertEquals(1, (long)repository.count().block());
+//
+//		try {
+//			sendCreateCommentEvent(bookId, commentId);
+//			fail("Expected a MessagingException here!");
+//		} catch (MessagingException me) {
+//			if (me.getCause() instanceof InvalidInputException)	{
+//				InvalidInputException iie = (InvalidInputException)me.getCause();
+//				assertEquals("Duplicate key, Book Id: 1, Comment Id:1", iie.getMessage());
+//			} else {
+//				fail("Expected a InvalidInputException as the root cause!");
+//			}
+//		}
+//
+//		assertEquals(1, (long)repository.count().block());
+//	}
 
 	@Test
 	public void deleteComment() {
@@ -51,13 +98,13 @@ public class CommentServiceApplicationTests {
 		int bookId = 1;
 		int commentId = 1;
 
-		postAndVerifyComment(bookId, commentId, OK);
-		assertEquals(1, repository.findByBookId(bookId).size());
+		sendCreateCommentEvent(bookId, commentId);
+		assertEquals(1, (long)repository.findByBookId(bookId).count().block());
 
-		deleteAndVerifyCommentByBookId(bookId, OK);
-		assertEquals(0, repository.findByBookId(bookId).size());
+		sendDeleteCommentEvent(bookId);
+		assertEquals(0, (long)repository.findByBookId(bookId).count().block());
 
-		deleteAndVerifyCommentByBookId(bookId, OK);
+		sendDeleteCommentEvent(bookId);
 	}
 
 //	@Test
@@ -93,27 +140,29 @@ public class CommentServiceApplicationTests {
 
 	}
 
-	private WebTestClient.BodyContentSpec getAndVerifyCommentByBookId(String bookIdQuery,
-		HttpStatus expectedStatus) {
+	private WebTestClient.BodyContentSpec getAndVerifyCommentByBookId(int bookId, HttpStatus expectedStatus) {
+		return getAndVerifyCommentByBookId("?bookId=" + bookId, expectedStatus);
+	}
+
+	private WebTestClient.BodyContentSpec getAndVerifyCommentByBookId(String bookIdQuery, HttpStatus expectedStatus) {
 		return client.get()
-				.uri("/comment" + bookIdQuery)
-				.accept(APPLICATION_JSON)
-				.exchange()
-				.expectStatus().isEqualTo(expectedStatus)
-				.expectHeader().contentType(APPLICATION_JSON)
-				.expectBody();
+			.uri("/comment" + bookIdQuery)
+			.accept(APPLICATION_JSON)
+			.exchange()
+			.expectStatus().isEqualTo(expectedStatus)
+			.expectHeader().contentType(APPLICATION_JSON)
+			.expectBody();
 	}
 
-	private WebTestClient.BodyContentSpec postAndVerifyComment(int bookId, int commentId,
-		HttpStatus expectedStatus) {
-		Comment comment = new Comment(bookId, commentId, "Author 1", "content 1", "SA");
-		return client.post().uri("/comment").body(just(comment), Comment.class).accept(APPLICATION_JSON).exchange()
-				.expectStatus().isEqualTo(expectedStatus).expectHeader().contentType(APPLICATION_JSON).expectBody();
+
+	private void sendCreateCommentEvent(int bookId, int commentId) {
+		Comment comment = new Comment(bookId, commentId, "Author " + commentId, "Content " + commentId, "SA");
+		Event<Integer, BookModel> event = new Event(CREATE, bookId, comment);
+		input.send(new GenericMessage<>(event));
 	}
 
-	private WebTestClient.BodyContentSpec deleteAndVerifyCommentByBookId(int bookId,
-		HttpStatus expectedStatus) {
-		return client.delete().uri("/comment?bookId=" + bookId).accept(APPLICATION_JSON)
-				.exchange().expectStatus().isEqualTo(expectedStatus).expectBody();
+	private void sendDeleteCommentEvent(int bookId) {
+		Event<Integer, BookModel> event = new Event(DELETE, bookId, null);
+		input.send(new GenericMessage<>(event));
 	}
 }
