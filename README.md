@@ -7,10 +7,11 @@ BookInfo-microservices is a book information service. It is a microservice archi
 ## Persistence
 
 Data Persistence is implemented using different Database Management Systems. In bookinfo microservice landscape, there are four core microservices which require permanently data storing, and these four microservices use following DBMSs:
-*Book - MongoDB
-*Comment - MongoDB
-*BookThemeNight - MongoDB
-*Rating - MySQL
+
+* Book - MongoDB
+* Comment - MongoDB
+* BookThemeNight - MongoDB
+* Rating - MySQL
 
 The database schema is attached in the following picture, along with belonging attributes and data types.
 
