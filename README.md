@@ -13,7 +13,7 @@ Data Persistence is implemented using different Database Management Systems. In 
 *Rating - MySQL
 
 The database schema is attached in the following picture, along with belonging attributes and data types.
-! [/diagrams/uml-class-diagram.png]
+! [Uml Class Diagram](/diagrams/uml-class-diagram.png)
 
 The logic used for retrieving data for the book composite microservice is a non-blocking synchronous call to all four core microservices. This reactive approach implies that the requests for data are being sent in parallel to all four core microservices. The logic which is being used in this scenario is called Project Reactor, which uses two types of objects: Flux and Mono. Flux objects are used for streams that have 0 to N elements, while Mono objects are used for streams with 0 to 1 elements. BookInfo Microservices project is implemented in a way in which, if a GET request has been made to a currently unavailable microservice which returns Flux objects (Comment, BookThemeNight and Rating), instead of throwing an exception, it will return empty list. 
 
