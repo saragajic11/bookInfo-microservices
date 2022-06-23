@@ -73,11 +73,11 @@ public class PersistenceTests {
         assertEqualsRating(savedRatingEntity, entityList.get(0));
 	}
 	
-	/*@Test(expected = DuplicateKeyException.class)
+	@Test(expected = DuplicateKeyException.class)
 	public void duplicateError() {
 		RatingEntity entity = new RatingEntity(1, 1, "author2", 6);
 		repository.save(entity);
-	}*/
+	}
 
 
 	@Test

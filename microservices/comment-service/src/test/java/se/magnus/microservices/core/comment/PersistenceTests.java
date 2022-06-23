@@ -70,11 +70,11 @@ public class PersistenceTests {
         assertEqualsComment(savedCommentEntity, entityList.get(0));
 	}
 
-	/*@Test(expected = DuplicateKeyException.class)
+	@Test(expected = DuplicateKeyException.class)
 	public void duplicateError() {
 		CommentEntity entity = new CommentEntity(1, 1, "author1", "content1");
 		repository.save(entity);
-	}*/
+	}
 	
 	@Test
 	public void optimisticLockError() {

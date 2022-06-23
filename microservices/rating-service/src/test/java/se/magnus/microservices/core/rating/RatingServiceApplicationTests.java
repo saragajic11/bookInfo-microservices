@@ -73,33 +73,33 @@ public class RatingServiceApplicationTests {
 			.jsonPath("$[2].ratingId").isEqualTo(3);
 	}
 	
-//	@Test
-//	public void duplicateError() {
-//
-//		int bookId = 1;
-//		int ratingId = 1;
-//
-//		assertEquals(0, repository.count());
-//
-//		sendCreateRatingEvent(bookId, ratingId);
-//
-//		assertEquals(1, repository.count());
-//
-//		try {
-//			sendCreateRatingEvent(bookId, ratingId);
-//			fail("Expected a MessagingException here!");
-//		} catch (MessagingException me) {
-//			if (me.getCause() instanceof InvalidInputException)	{
-//				InvalidInputException iie = (InvalidInputException)me.getCause();
-//				assertEquals("Duplicate key, book Id: 1, rating Id:1", iie.getMessage());
-//			} else {
-//				fail("Expected a InvalidInputException as the root cause!");
-//			}
-//		}
-//
-//		assertEquals(1, repository.count());
-//	}
-//	
+	@Test
+	public void duplicateError() {
+
+		int bookId = 1;
+		int ratingId = 1;
+
+		assertEquals(0, repository.count());
+
+		sendCreateRatingEvent(bookId, ratingId);
+
+		assertEquals(1, repository.count());
+
+		try {
+			sendCreateRatingEvent(bookId, ratingId);
+			fail("Expected a MessagingException here!");
+		} catch (MessagingException me) {
+			if (me.getCause() instanceof InvalidInputException)	{
+				InvalidInputException iie = (InvalidInputException)me.getCause();
+				assertEquals("Duplicate key, book Id: 1, rating Id:1", iie.getMessage());
+			} else {
+				fail("Expected a InvalidInputException as the root cause!");
+			}
+		}
+
+		assertEquals(1, repository.count());
+	}
+	
 	@Test
 	public void deleteRating() {
 
@@ -115,18 +115,18 @@ public class RatingServiceApplicationTests {
 		sendDeleteRatingEvent(bookId);
 	}
 
-//	@Test
-//	public void getRatingMissingParameter() {
-//		getAndVerifyRatingByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/rating")
-//				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
-//	}
-//
-//	@Test
-//	public void getRatingInvalidParameter() {
-//
-//		getAndVerifyRatingByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
-//				.isEqualTo("/rating").jsonPath("$.message").isEqualTo("Type mismatch.");
-//	}
+	@Test
+	public void getRatingMissingParameter() {
+		getAndVerifyRatingByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/rating")
+				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
+	}
+
+	@Test
+	public void getRatingInvalidParameter() {
+
+		getAndVerifyRatingByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+				.isEqualTo("/rating").jsonPath("$.message").isEqualTo("Type mismatch.");
+	}
 	
 	@Test
 	public void getRatingsNotFound() {

@@ -34,7 +34,6 @@ import org.springframework.messaging.MessageChannel;
 import se.magnus.api.event.Event;
 import static se.magnus.api.event.Event.Type.CREATE;
 import static se.magnus.api.event.Event.Type.DELETE;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -175,31 +174,6 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
         }
     }
     
-    public Mono<Health> getBookHealth() {
-        return getHealth(bookServiceUrl);
-    }
-
-    public Mono<Health> getCommentHealth() {
-        return getHealth(commentServiceUrl);
-    }
-    
-    public Mono<Health> getBookThemeNightHealth() {
-        return getHealth(bookThemeNightServiceUrl);
-    }
-
-    public Mono<Health> getRatingHealth() {
-        return getHealth(ratingServiceUrl);
-    }
-
-    private Mono<Health> getHealth(String url) {
-        url += "/actuator/health";
-        LOG.debug("Will call the Health API on URL: {}", url);
-        return webClient.get().uri(url).retrieve().bodyToMono(String.class)
-            .map(s -> new Health.Builder().up().build())
-            .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
-            .log();
-    }
-	
 	private Throwable handleException(Throwable ex) {
 
         if (!(ex instanceof WebClientResponseException)) {

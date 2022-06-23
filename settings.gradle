@@ -6,4 +6,5 @@ include ':microservices:comment-service'
 include 'microservices:book-theme-night-service'
 include ':microservices:book-composite-service'
 include ':spring-cloud:eureka-server'
+include ':spring-cloud:gateway' 
 

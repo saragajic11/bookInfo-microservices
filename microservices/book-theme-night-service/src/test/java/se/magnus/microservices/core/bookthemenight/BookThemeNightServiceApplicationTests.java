@@ -74,30 +74,30 @@ public class BookThemeNightServiceApplicationTests {
 			.jsonPath("$[2].bookThemeNightId").isEqualTo(3);
 	}
 	
-//	@Test
-//	public void duplicateError() {
-//
-//		int bookId = 1;
-//		int bookThemeNightId = 1;
-//
-//		sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
-//
-//		assertEquals(1, (long)repository.count().block());
-//
-//		try {
-//			sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
-//			fail("Expected a MessagingException here!");
-//		} catch (MessagingException me) {
-//			if (me.getCause() instanceof InvalidInputException)	{
-//				InvalidInputException iie = (InvalidInputException)me.getCause();
-//				assertEquals("Duplicate key, Book Id: 1, Book theme night Id:1", iie.getMessage());
-//			} else {
-//				fail("Expected a InvalidInputException as the root cause!");
-//			}
-//		}
-//
-//		assertEquals(1, (long)repository.count().block());
-//	}
+	@Test
+	public void duplicateError() {
+
+		int bookId = 1;
+		int bookThemeNightId = 1;
+
+		sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
+
+		assertEquals(1, (long)repository.count().block());
+
+		try {
+			sendCreateBookThemeNightEvent(bookId, bookThemeNightId);
+			fail("Expected a MessagingException here!");
+		} catch (MessagingException me) {
+			if (me.getCause() instanceof InvalidInputException)	{
+				InvalidInputException iie = (InvalidInputException)me.getCause();
+				assertEquals("Duplicate key, Book Id: 1, Book theme night Id:1", iie.getMessage());
+			} else {
+				fail("Expected a InvalidInputException as the root cause!");
+			}
+		}
+
+		assertEquals(1, (long)repository.count().block());
+	}
 
 	@Test
 	public void deleteBookThemeNight() {
@@ -114,20 +114,20 @@ public class BookThemeNightServiceApplicationTests {
 		sendDeleteBookThemeNightEvent(bookId);
 	}
 
-//	@Test
-//	public void getBookThemeNightsMissingParameter() {
-//
-//		getAndVerifyBookThemeNightByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
-//				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
-//	}
-//
-//	@Test
-//	public void getBookThemeNightInvalidParameter() {
-//
-//		getAndVerifyBookThemeNightByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
-//				.isEqualTo("/book-theme-night").jsonPath("$.message").isEqualTo("Type mismatch.");
-//
-//	}
+	@Test
+	public void getBookThemeNightsMissingParameter() {
+
+		getAndVerifyBookThemeNightByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/book-theme-night")
+				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
+	}
+
+	@Test
+	public void getBookThemeNightInvalidParameter() {
+
+		getAndVerifyBookThemeNightByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+				.isEqualTo("/book-theme-night").jsonPath("$.message").isEqualTo("Type mismatch.");
+
+	}
 
 	@Test
 	public void getBookThemeNightNotFound() {

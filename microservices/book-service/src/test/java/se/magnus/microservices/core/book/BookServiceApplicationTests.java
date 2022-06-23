@@ -72,29 +72,29 @@ public class BookServiceApplicationTests {
             .jsonPath("$.bookId").isEqualTo(bookId);
 	}
 	
-//	@Test
-//	public void duplicateError() {
-//
-//		int bookId = 1;
-//
-//		assertNull(repository.findByBookId(bookId).block());
-//
-//		sendCreateBookEvent(bookId);
-//
-//		assertNotNull(repository.findByBookId(bookId).block());
-//
-//		try {
-//			sendCreateBookEvent(bookId);
-//			fail("Expected a MessagingException here!");
-//		} catch (MessagingException me) {
-//			if (me.getCause() instanceof InvalidInputException)	{
-//				InvalidInputException iie = (InvalidInputException)me.getCause();
-//				assertEquals("Duplicate key, book Id: " + bookId, iie.getMessage());
-//			} else {
-//				fail("Expected a InvalidInputException as the root cause!");
-//			}
-//		}
-//	}
+	@Test
+	public void duplicateError() {
+
+		int bookId = 1;
+
+		assertNull(repository.findByBookId(bookId).block());
+
+		sendCreateBookEvent(bookId);
+
+		assertNotNull(repository.findByBookId(bookId).block());
+
+		try {
+			sendCreateBookEvent(bookId);
+			fail("Expected a MessagingException here!");
+		} catch (MessagingException me) {
+			if (me.getCause() instanceof InvalidInputException)	{
+				InvalidInputException iie = (InvalidInputException)me.getCause();
+				assertEquals("Duplicate key, book Id: " + bookId, iie.getMessage());
+			} else {
+				fail("Expected a InvalidInputException as the root cause!");
+			}
+		}
+	}
 
 	@Test
 	public void deleteBook() {
@@ -110,13 +110,13 @@ public class BookServiceApplicationTests {
 		sendDeleteBookEvent(bookId);
 	}
 	
-//	@Test
-//	public void getBookInvalidParameterString() {
-//
-//		getAndVerifyBook("/no-integer", BAD_REQUEST)
-//            .jsonPath("$.path").isEqualTo("/book/no-integer")
-//            .jsonPath("$.message").isEqualTo("Type mismatch.");
-//	}
+	@Test
+	public void getBookInvalidParameterString() {
+
+		getAndVerifyBook("/no-integer", BAD_REQUEST)
+            .jsonPath("$.path").isEqualTo("/book/no-integer")
+            .jsonPath("$.message").isEqualTo("Type mismatch.");
+	}
 
 	@Test
 	public void getBookNotFound() {
@@ -127,15 +127,15 @@ public class BookServiceApplicationTests {
             .jsonPath("$.message").isEqualTo("No book found for bookId: " + bookIdNotFound);
 	}
 	
-//	@Test
-//	public void getBookInvalidParameterNegativeValue() {
-//
-//		int bookIdInvalid = -1;
-//
-//		getAndVerifyBook(String.valueOf(bookIdInvalid), UNPROCESSABLE_ENTITY).jsonPath("$.path")
-//				.isEqualTo("/book/" + bookIdInvalid).jsonPath("$.message")
-//				.isEqualTo("Invalid bookId: " + bookIdInvalid);
-//	}
+	@Test
+	public void getBookInvalidParameterNegativeValue() {
+
+		int bookIdInvalid = -1;
+
+		getAndVerifyBook(String.valueOf(bookIdInvalid), UNPROCESSABLE_ENTITY).jsonPath("$.path")
+				.isEqualTo("/book/" + bookIdInvalid).jsonPath("$.message")
+				.isEqualTo("Invalid bookId: " + bookIdInvalid);
+	}
 
 	private WebTestClient.BodyContentSpec getAndVerifyBook(int bookId, HttpStatus expectedStatus) {
 		return getAndVerifyBook("/" + bookId, expectedStatus);

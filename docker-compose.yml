@@ -53,8 +53,6 @@ services:
     platform: linux/amd64
     build: microservices/book-composite-service
     mem_limit: 600m
-    ports:
-      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -65,8 +63,15 @@ services:
     platform: linux/amd64
     build: spring-cloud/eureka-server
     mem_limit: 600m
+    
+  gateway:
+    platform: linux/amd64  
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    build: spring-cloud/gateway
+    mem_limit: 600m
     ports:
-      - "8761:8761"        
+      - "8080:8080"        
       
   mongodb:
     platform: linux/amd64
@@ -76,7 +81,7 @@ services:
       - "27017:27017"
     healthcheck:
       test: "mongo --eval 'db.stats().ok'"
-      interval: 10s
+      interval: 20s
       timeout: 5s
       retries: 10
       
@@ -93,7 +98,7 @@ services:
       - MYSQL_PASSWORD=pwd
     healthcheck:
       test: "/usr/bin/mysql --user=user --password=pwd --execute \"SHOW DATABASES;\""
-      interval: 10s
+      interval: 20s
       timeout: 5s
       retries: 10
       
@@ -106,6 +111,6 @@ services:
       - 15672:15672
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
-      interval: 10s
+      interval: 20s
       timeout: 5s
       retries: 10

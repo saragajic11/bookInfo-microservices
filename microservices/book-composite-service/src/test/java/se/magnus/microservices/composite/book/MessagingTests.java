@@ -71,10 +71,10 @@ public class MessagingTests {
 		postAndVerifyBook(composite, OK);
 
 		// Assert one expected new book events queued up
-		//assertEquals(1, queueBooks.size());
+		assertEquals(1, queueBooks.size());
 
 		Event<Integer, BookModel> expectedEvent = new Event(CREATE, composite.getBookId(), new BookModel(composite.getBookId(), composite.getName(), composite.getReleaseDate(), composite.getLanguage(), null));
-		//assertThat(queueBooks, is(receivesPayloadThat(sameEventExceptCreatedAt(expectedEvent))));
+		assertThat(queueBooks, is(receivesPayloadThat(sameEventExceptCreatedAt(expectedEvent))));
 
 		// Assert none comments, bookThemeNights and rating events
 		assertEquals(0, queueComments.size());
@@ -94,62 +94,62 @@ public class MessagingTests {
 		postAndVerifyBook(composite, OK);
 
 		// Assert one create book event queued up
-		//assertEquals(1, queueBooks.size());
+		assertEquals(1, queueBooks.size());
 
 		Event<Integer, BookModel> expectedBookEvent = new Event(CREATE, composite.getBookId(), new BookModel(composite.getBookId(), composite.getName(), composite.getReleaseDate(), composite.getLanguage(), null));
-		//assertThat(queueBooks, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookEvent)));
+		assertThat(queueBooks, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookEvent)));
 
 		// Assert one create rating event queued up
 		assertEquals(1, queueRatings.size());
 
 		RatingSummary rat = composite.getRatings().get(0);
 		Event<Integer, BookModel> expectedRatingEvent = new Event(CREATE, composite.getBookId(), new Rating(composite.getBookId(), rat.getRatingId(), rat.getAuthor(), rat.getRating(), null));
-		//assertThat(queueRatings, receivesPayloadThat(sameEventExceptCreatedAt(expectedRatingEvent)));
+		assertThat(queueRatings, receivesPayloadThat(sameEventExceptCreatedAt(expectedRatingEvent)));
 
 		// Assert one create comment event queued up
 		assertEquals(1, queueComments.size());
 
 		CommentSummary com = composite.getComments().get(0);
 		Event<Integer, BookModel> expectedCommentEvent = new Event(CREATE, composite.getBookId(), new Comment(composite.getBookId(), com.getCommentId(), com.getAuthor(), com.getContent(), null));
-		//assertThat(queueComments, receivesPayloadThat(sameEventExceptCreatedAt(expectedCommentEvent)));
+		assertThat(queueComments, receivesPayloadThat(sameEventExceptCreatedAt(expectedCommentEvent)));
 		
 		// Assert one create bookThemeNight event queued up
 		assertEquals(1, queueBookThemeNights.size());
 
 		BookThemeNightSummary btn = composite.getBookThemeNights().get(0);
 		Event<Integer, BookModel> expectedBookThemeNightEvent = new Event(CREATE, composite.getBookId(), new BookThemeNight(composite.getBookId(), btn.getBookThemeNightId(), btn.getName(), btn.getStartDate(), btn.getLocation(), null));
-		//assertThat(queueBookThemeNights, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookThemeNightEvent)));
+		assertThat(queueBookThemeNights, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookThemeNightEvent)));
 	}
 	
-//	@Test
-//	public void deleteCompositeBook() {
-//
-//		deleteAndVerifyBook(1, OK);
-//
-//		// Assert one delete book event queued up
-//		//assertEquals(1, queueBooks.size());
-//
-//		Event<Integer, BookModel> expectedEvent = new Event(DELETE, 1, null);
-//		//assertThat(queueBooks, is(receivesPayloadThat(sameEventExceptCreatedAt(expectedEvent))));
-//
-//		// Assert one delete rating event queued up
-//		assertEquals(1, queueRatings.size());
-//
-//		Event<Integer, BookModel> expectedRatingEvent = new Event(DELETE, 1, null);
-//		//assertThat(queueRatings, receivesPayloadThat(sameEventExceptCreatedAt(expectedRatingEvent)));
-//
-//		// Assert one delete comment event queued up
-//		assertEquals(1, queueComments.size());
-//
-//		Event<Integer, BookModel> expectedCommentEvent = new Event(DELETE, 1, null);
-//		//assertThat(queueComments, receivesPayloadThat(sameEventExceptCreatedAt(expectedCommentEvent)));
-//		
-//		// Assert one delete bookThemeNight event queued up
-//		assertEquals(1, queueBookThemeNights.size());
-//
-//		Event<Integer, BookModel> expectedBookThemeNightEvent = new Event(DELETE, 1, null);
-//		//assertThat(queueBookThemeNights, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookThemeNightEvent)));
-//	}
+	@Test
+	public void deleteCompositeBook() {
+
+		deleteAndVerifyBook(1, OK);
+
+		// Assert one delete book event queued up
+		assertEquals(1, queueBooks.size());
+
+		Event<Integer, BookModel> expectedEvent = new Event(DELETE, 1, null);
+		assertThat(queueBooks, is(receivesPayloadThat(sameEventExceptCreatedAt(expectedEvent))));
+
+		// Assert one delete rating event queued up
+		assertEquals(1, queueRatings.size());
+
+		Event<Integer, BookModel> expectedRatingEvent = new Event(DELETE, 1, null);
+		assertThat(queueRatings, receivesPayloadThat(sameEventExceptCreatedAt(expectedRatingEvent)));
+
+		// Assert one delete comment event queued up
+		assertEquals(1, queueComments.size());
+
+		Event<Integer, BookModel> expectedCommentEvent = new Event(DELETE, 1, null);
+		assertThat(queueComments, receivesPayloadThat(sameEventExceptCreatedAt(expectedCommentEvent)));
+		
+		// Assert one delete bookThemeNight event queued up
+		assertEquals(1, queueBookThemeNights.size());
+
+		Event<Integer, BookModel> expectedBookThemeNightEvent = new Event(DELETE, 1, null);
+		assertThat(queueBookThemeNights, receivesPayloadThat(sameEventExceptCreatedAt(expectedBookThemeNightEvent)));
+	}
 	
 	private BlockingQueue<Message<?>> getQueue(MessageChannel messageChannel) {
 		return collector.forChannel(messageChannel);

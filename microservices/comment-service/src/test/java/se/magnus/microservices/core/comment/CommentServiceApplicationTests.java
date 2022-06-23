@@ -67,30 +67,30 @@ public class CommentServiceApplicationTests {
 			.jsonPath("$[2].commentId").isEqualTo(3);
 	}
 	
-//	@Test
-//	public void duplicateError() {
-//
-//		int bookId = 1;
-//		int commentId = 1;
-//
-//		sendCreateCommentEvent(bookId, commentId);
-//
-//		assertEquals(1, (long)repository.count().block());
-//
-//		try {
-//			sendCreateCommentEvent(bookId, commentId);
-//			fail("Expected a MessagingException here!");
-//		} catch (MessagingException me) {
-//			if (me.getCause() instanceof InvalidInputException)	{
-//				InvalidInputException iie = (InvalidInputException)me.getCause();
-//				assertEquals("Duplicate key, Book Id: 1, Comment Id:1", iie.getMessage());
-//			} else {
-//				fail("Expected a InvalidInputException as the root cause!");
-//			}
-//		}
-//
-//		assertEquals(1, (long)repository.count().block());
-//	}
+	@Test
+	public void duplicateError() {
+
+		int bookId = 1;
+		int commentId = 1;
+
+		sendCreateCommentEvent(bookId, commentId);
+
+		assertEquals(1, (long)repository.count().block());
+
+		try {
+			sendCreateCommentEvent(bookId, commentId);
+			fail("Expected a MessagingException here!");
+		} catch (MessagingException me) {
+			if (me.getCause() instanceof InvalidInputException)	{
+				InvalidInputException iie = (InvalidInputException)me.getCause();
+				assertEquals("Duplicate key, Book Id: 1, Comment Id:1", iie.getMessage());
+			} else {
+				fail("Expected a InvalidInputException as the root cause!");
+			}
+		}
+
+		assertEquals(1, (long)repository.count().block());
+	}
 
 	@Test
 	public void deleteComment() {
@@ -107,20 +107,20 @@ public class CommentServiceApplicationTests {
 		sendDeleteCommentEvent(bookId);
 	}
 
-//	@Test
-//	public void getCommentsMissingParameter() {
-//
-//		getAndVerifyCommentByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/comment")
-//				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
-//	}
-//
-//	@Test
-//	public void getCommentInvalidParameter() {
-//
-//		getAndVerifyCommentByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
-//				.isEqualTo("/comment").jsonPath("$.message").isEqualTo("Type mismatch.");
-//
-//	}
+	@Test
+	public void getCommentsMissingParameter() {
+
+		getAndVerifyCommentByBookId("", BAD_REQUEST).jsonPath("$.path").isEqualTo("/comment")
+				.jsonPath("$.message").isEqualTo("Required int parameter 'bookId' is not present");
+	}
+
+	@Test
+	public void getCommentInvalidParameter() {
+
+		getAndVerifyCommentByBookId("?bookId=no-integer", BAD_REQUEST).jsonPath("$.path")
+				.isEqualTo("/comment").jsonPath("$.message").isEqualTo("Type mismatch.");
+
+	}
 
 	@Test
 	public void getCommentNotFound() {

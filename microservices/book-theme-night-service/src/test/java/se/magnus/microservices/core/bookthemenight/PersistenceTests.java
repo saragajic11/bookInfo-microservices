@@ -71,11 +71,11 @@ public class PersistenceTests {
         assertEqualsBookThemeNight(savedBookThemeNightEntity, entityList.get(0));
 	}
 
-	/*@Test(expected = DuplicateKeyException.class)
+	@Test(expected = DuplicateKeyException.class)
 	public void duplicateError() {
 		BookThemeNightEntity entity = new BookThemeNightEntity(1, 1, "name1", new Date(), "location1");
 		repository.save(entity);
-	}*/
+	}
 	
 	public void optimisticLockError() {
 
