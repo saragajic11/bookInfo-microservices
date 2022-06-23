@@ -45,11 +45,12 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 	
 	private final ObjectMapper mapper;
 	
-	private final String bookServiceUrl;
-	private final String bookThemeNightServiceUrl;
-	private final String commentServiceUrl;
-	private final String ratingServiceUrl;
-    private final WebClient webClient;
+	private final String bookServiceUrl = "http://book";
+	private final String bookThemeNightServiceUrl = "http://bookthemenight";
+	private final String commentServiceUrl = "http://comment";
+	private final String ratingServiceUrl = "http://rating";
+    private WebClient webClient;
+    private WebClient.Builder webClientBuilder;
     private MessageSources messageSources;
     
     public interface MessageSources {
@@ -76,15 +77,9 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 	private static final Logger LOG = LoggerFactory.getLogger(BookCompositeIntegration.class);
 	
 	@Autowired
-	public BookCompositeIntegration(WebClient.Builder webClient, ObjectMapper mapper, MessageSources messageSources, @Value("${app.book-service.host}") String bookServiceHost,  @Value("${app.book-service.port}") int bookServicePort, @Value("${app.book-theme-night-service.host}") String bookThemeNightServiceHost,  @Value("${app.book-theme-night-service.port}") int bookThemeNightServicePort, @Value("${app.comment-service.host}") String commentServiceHost,  @Value("${app.comment-service.port}") int commentServicePort, @Value("${app.rating-service.host}") String ratingServiceHost,  @Value("${app.rating-service.port}") int ratingServicePort) {
+	public BookCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper mapper, MessageSources messageSources) {
 		this.mapper = mapper;
-		
-		bookServiceUrl = "http://" + bookServiceHost + ":" +   bookServicePort;
-		bookThemeNightServiceUrl = "http://" + bookThemeNightServiceHost  + ":" + bookThemeNightServicePort;
-		commentServiceUrl = "http://" + commentServiceHost +   ":" + commentServicePort;
-		ratingServiceUrl = "http://" + ratingServiceHost +   ":" + ratingServicePort;
-		
-		this.webClient = webClient.build();
+		this.webClientBuilder = webClientBuilder;
 		this.messageSources = messageSources;
 	}
 	
@@ -93,7 +88,7 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
 		String url = bookServiceUrl + "/book/" + bookId;
         LOG.debug("Will call the getBook API on URL: {}", url);
 
-        return webClient.get().uri(url).retrieve().bodyToMono(BookModel.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
+        return getWebClient().get().uri(url).retrieve().bodyToMono(BookModel.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
 	}
 	
 	@Override
@@ -120,7 +115,7 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
         LOG.debug("Will call the getBookThemeNights API on URL: {}", url);
 
         // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
-        return webClient.get().uri(url).retrieve().bodyToFlux(BookThemeNight.class).log().onErrorResume(error -> empty());
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(BookThemeNight.class).log().onErrorResume(error -> empty());
     }
 
     @Override
@@ -142,7 +137,7 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
         LOG.debug("Will call the getComments API on URL: {}", url);
 
         // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
-        return webClient.get().uri(url).retrieve().bodyToFlux(Comment.class).log().onErrorResume(error -> empty());
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(Comment.class).log().onErrorResume(error -> empty());
     }
 
     @Override
@@ -163,7 +158,7 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
         LOG.debug("Will call the getRatings API on URL: {}", url);
 
         // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
-        return webClient.get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
+        return getWebClient().get().uri(url).retrieve().bodyToFlux(Rating.class).log().onErrorResume(error -> empty());
 
     }
 
@@ -227,6 +222,13 @@ public class BookCompositeIntegration implements BookService, BookThemeNightServ
             LOG.warn("Error body: {}", wcre.getResponseBodyAsString());
             return ex;
         }
+    }
+	
+    private WebClient getWebClient() {
+        if (webClient == null) {
+            webClient = webClientBuilder.build();
+        }
+        return webClient;
     }
 	
 }

@@ -145,6 +145,13 @@ services:
       - SPRING_CLOUD_STREAM_BINDINGS_OUTPUT-BOOK-THEME-NIGHTS_PRODUCER_PARTITION-COUNT=2
     depends_on:
       - kafka
+      
+  eureka:
+    platform: linux/amd64
+    build: spring-cloud/eureka-server
+    mem_limit: 350m
+    ports:
+      - "8761:8761"       
 
   # $ mongo
   mongodb:

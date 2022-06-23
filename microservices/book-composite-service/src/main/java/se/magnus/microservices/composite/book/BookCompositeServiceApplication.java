@@ -22,6 +22,8 @@ import se.magnus.microservices.composite.book.services.*;
 import java.util.LinkedHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
 @ComponentScan("se.magnus")
@@ -87,6 +89,13 @@ public class BookCompositeServiceApplication {
 	@Bean
 	RestTemplate restTemplate() {
 		return new RestTemplate();
+	}
+	
+	@Bean
+	@LoadBalanced
+	public WebClient.Builder loadBalancedWebClientBuilder() {
+		final WebClient.Builder builder = WebClient.builder();
+		return builder;
 	}
 	
 

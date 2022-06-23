@@ -35,7 +35,7 @@ import static se.magnus.microservices.composite.book.IsSameEvent.sameEventExcept
 import java.util.Date;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=RANDOM_PORT)
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"eureka.client.enabled=false"})
 public class MessagingTests {
 	
 	private static final int BOOK_ID_OK = 1;

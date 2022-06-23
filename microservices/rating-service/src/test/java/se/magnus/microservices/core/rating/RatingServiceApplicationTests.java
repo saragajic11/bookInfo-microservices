@@ -30,7 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
 import static se.magnus.api.event.Event.Type.CREATE;
 import static se.magnus.api.event.Event.Type.DELETE;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.datasource.url=jdbc:h2:mem:review-db" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "logging.level.com.example=DEBUG", "eureka.client.enabled=false", "spring.datasource.url=jdbc:h2:mem:review-db" })
 @RunWith(SpringRunner.class)
 
 public class RatingServiceApplicationTests {

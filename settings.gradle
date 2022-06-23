@@ -5,4 +5,5 @@ include ':microservices:rating-service'
 include ':microservices:comment-service'
 include 'microservices:book-theme-night-service'
 include ':microservices:book-composite-service'
+include ':spring-cloud:eureka-server'
 

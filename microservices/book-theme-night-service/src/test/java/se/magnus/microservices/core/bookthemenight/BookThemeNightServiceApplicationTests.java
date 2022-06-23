@@ -33,7 +33,7 @@ import static se.magnus.api.event.Event.Type.DELETE;
 
 import java.util.Date;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.data.mongodb.port: 0" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.data.mongodb.port: 0" ,  "eureka.client.enabled=false"})
 @RunWith(SpringRunner.class)
 public class BookThemeNightServiceApplicationTests {
 	

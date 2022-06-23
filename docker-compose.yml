@@ -4,7 +4,7 @@ services:
   book:
     platform: linux/amd64
     build: microservices/book-service
-    mem_limit: 500m
+    mem_limit: 600m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -16,7 +16,7 @@ services:
   comment:
     platform: linux/amd64
     build: microservices/comment-service
-    mem_limit: 500m
+    mem_limit: 600m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -28,7 +28,7 @@ services:
   rating:
     platform: linux/amd64
     build: microservices/rating-service
-    mem_limit: 500m
+    mem_limit: 600m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -40,7 +40,7 @@ services:
   book-theme-night:
     platform: linux/amd64
     build: microservices/book-theme-night-service
-    mem_limit: 500m
+    mem_limit: 600m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -52,7 +52,7 @@ services:
   book-composite:
     platform: linux/amd64
     build: microservices/book-composite-service
-    mem_limit: 500m
+    mem_limit: 600m
     ports:
       - "8080:8080"
     environment:
@@ -60,6 +60,13 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+        
+  eureka:
+    platform: linux/amd64
+    build: spring-cloud/eureka-server
+    mem_limit: 600m
+    ports:
+      - "8761:8761"        
       
   mongodb:
     platform: linux/amd64

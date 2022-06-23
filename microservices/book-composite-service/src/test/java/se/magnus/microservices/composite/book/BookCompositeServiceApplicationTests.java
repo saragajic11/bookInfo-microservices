@@ -30,7 +30,7 @@ import java.util.Date;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@SpringBootTest(webEnvironment=RANDOM_PORT)
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"eureka.client.enabled=false"})
 @RunWith(SpringRunner.class)
 public class BookCompositeServiceApplicationTests {
 	
