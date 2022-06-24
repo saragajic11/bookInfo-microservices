@@ -25,6 +25,8 @@ While retrieving data is implemented using synchronous communication, data creat
 
 Microservice landscape is attached in the following image.
 
+![Landscape](diagrams/landscape.png)
+
 ## Prerequisites
 
 * ``Homebrew`` - Homebrew installs packages for macOS or Linux. Installation guide can be found [here](https://docs.brew.sh/Installation) 
